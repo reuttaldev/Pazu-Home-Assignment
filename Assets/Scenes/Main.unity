@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 130915950}
   - component: {fileID: 130915952}
   m_Layer: 0
-  m_Name: EventSystem
+  m_Name: Event System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -568,7 +568,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!212 &918011745
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -609,7 +609,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -59
   m_Sprite: {fileID: 21300000, guid: 0f4574efc16aec3458281a0a905a5a65, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -802,6 +802,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1fc236567a0cbf45b9613f2042fbfbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hairManager: {fileID: 0}
   windStrength: 0.3
   windRadius: 1.5
 --- !u!212 &1354430920
@@ -1200,6 +1201,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e41d95b1c4b02469244a53124270f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hairManager: {fileID: 0}
+  cutRadius: 0.35
+  cutCooldown: 0.08
 --- !u!212 &1788941040
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1318,6 +1322,66 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &1874344020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1874344022}
+  - component: {fileID: 1874344021}
+  m_Layer: 0
+  m_Name: Hair Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1874344021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874344020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d784c5916a483b5478e854995d666d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardCount: 60
+  maxHeight: 1.6
+  minHeight: 0.05
+  cardWidth: 0.4
+  headCenter: {x: 0, y: 1.2}
+  arcRadius: 0.5
+  arcMinDeg: -85
+  arcMaxDeg: 85
+  windFreq: 2.5
+  windSmooth: 5
+  windRotFactor: 8
+  cardPrefabs:
+  - {fileID: 9068591133229764975, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
+  - {fileID: 6508710021459007597, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+  - {fileID: 4154490803921122654, guid: 489042ae447c09748be917874f8a1715, type: 3}
+  - {fileID: 3491506567928574885, guid: 494ba3723fb9fb94dafd5e3191c2a7f3, type: 3}
+--- !u!4 &1874344022
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1874344020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.058922, y: 1.689923, z: 0.6780141}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1928223121
 GameObject:
   m_ObjectHideFlags: 0
@@ -1366,6 +1430,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bae4db45e8084943be83ccc200c44a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hairManager: {fileID: 0}
+  growRate: 0.5
+  growRadius: 0.6
 --- !u!212 &1928223125
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1602,3 +1669,4 @@ SceneRoots:
   - {fileID: 380235425}
   - {fileID: 918011746}
   - {fileID: 1737811770}
+  - {fileID: 1874344022}

@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(FaceTarget))]
 public class HairDryer : DraggableTool
 {
+    [SerializeField] HairManager hairManager;
     [SerializeField] float windStrength = 0.3f;
     [SerializeField] float windRadius = 1.5f;
 
@@ -23,7 +24,10 @@ public class HairDryer : DraggableTool
         _faceTarget.enabled = true;
     }
 
-    protected override void OnMove(Vector2 pos) { }
+    protected override void OnMove(Vector2 pos)
+    {
+        hairManager.ApplyWind(pos, windStrength, windRadius);
+    }
 
     protected override void OnEnd()
     {
