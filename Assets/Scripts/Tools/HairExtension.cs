@@ -18,7 +18,7 @@ public class HairExtension : DraggableTool
 
     protected override void OnMove(Vector2 pos)
     {
-        hairManager.GrowHair(pos, growRadius, growRate);
+        //hairManager.GrowHair(pos, growRadius, growRate);
     }
 
     protected override void OnEnd() => _wobble.enabled = false;

@@ -26,7 +26,7 @@ public class HairDryer : DraggableTool
 
     protected override void OnMove(Vector2 pos)
     {
-        hairManager.ApplyWind(pos, windStrength, windRadius);
+        //hairManager.ApplyWind(pos, windStrength, windRadius);
     }
 
     protected override void OnEnd()

@@ -72,6 +72,14 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.64705884
       objectReference: {fileID: 0}
+    - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -657172763
+      objectReference: {fileID: 0}
     - target: {fileID: 9068591133229764975, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
       propertyPath: m_Name
       value: Hair 2

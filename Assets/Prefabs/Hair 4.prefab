@@ -8,6 +8,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 473529853757746720, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 473529853757746720, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 473529853757746720, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
     - target: {fileID: 1261230290458540526, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.92
@@ -48,6 +60,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 77.658
       objectReference: {fileID: 0}
+    - target: {fileID: 5403698781457232431, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6508710021459007597, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
       propertyPath: m_Name
       value: Hair 4
@@ -63,6 +79,10 @@ PrefabInstance:
     - target: {fileID: 8024111934086836375, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
       propertyPath: m_Color.r
       value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 8024111934086836375, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
+      propertyPath: m_SortingOrder
+      value: 239
       objectReference: {fileID: 0}
     - target: {fileID: 8979517589155237046, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
       propertyPath: m_Color.b

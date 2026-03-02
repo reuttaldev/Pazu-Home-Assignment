@@ -4,7 +4,6 @@ using UnityEngine;
 public class Scissors : DraggableTool
 {
     [SerializeField] HairManager hairManager;
-    [SerializeField] float cutRadius = 0.35f;
     [SerializeField] float cutCooldown = 0.08f;
 
     Animator _animator;
@@ -29,12 +28,6 @@ public class Scissors : DraggableTool
 
     protected override void OnMove(Vector2 pos)
     {
-        _cutTimer -= Time.deltaTime;
-        if (_cutTimer <= 0f)
-        {
-            hairManager.CutHair(pos, cutRadius);
-            _cutTimer = cutCooldown;
-        }
     }
 
     protected override void OnEnd()
