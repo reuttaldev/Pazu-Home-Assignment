@@ -6,7 +6,7 @@ public class InputManager : MonoBehaviour
     [SerializeField] Camera mainCamera;
     [SerializeField] LayerMask toolLayerMask;
 
-    DragLogic _activeTool;
+    DraggableTool _activeTool;
     bool _dragging;
 
     void Update()
@@ -23,9 +23,8 @@ public class InputManager : MonoBehaviour
         if (!_dragging && pointer.press.wasPressedThisFrame)
         {
             Collider2D hit = Physics2D.OverlapPoint(worldPos, toolLayerMask);
-            Debug.Log($"Pointer down {screenPos} → {worldPos} hit {(hit ? hit.name : "null")}");
 
-            if (hit != null && hit.TryGetComponent(out DragLogic tool))
+            if (hit != null && hit.TryGetComponent(out DraggableTool tool))
             {
                 _activeTool = tool;
                 _dragging = true;
