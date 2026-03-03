@@ -3,23 +3,34 @@ using UnityEngine;
 public class HairExtension : DraggableTool
 {
     [SerializeField] HairManager hairManager;
-    [SerializeField] float growRate = 0.5f;
-    [SerializeField] float growRadius = 0.6f;
+    [SerializeField] float growCooldown = 0.08f;
+    [SerializeField] Vector2 offset;
+    public Vector2 Offset => offset;
 
-    WobbleComponent _wobble;
+    WobbleComponent wobble;
+    float growTimer;
 
     protected override void Start()
     {
         base.Start();
-        _wobble = GetComponent<WobbleComponent>();
+        wobble = GetComponent<WobbleComponent>();
     }
 
-    protected override void OnBegin(Vector2 pos) => _wobble.enabled = true;
+    protected override void OnBegin(Vector2 pos)
+    {
+        wobble.enabled = true;
+        growTimer = 0f;
+    }
 
     protected override void OnMove(Vector2 pos)
     {
-        //hairManager.GrowHair(pos, growRadius, growRate);
+        growTimer -= Time.deltaTime;
+        if (growTimer <= 0f)
+        {
+            hairManager.GrowHair(pos + offset);
+            growTimer = growCooldown;
+        }
     }
 
-    protected override void OnEnd() => _wobble.enabled = false;
+    protected override void OnEnd() => wobble.enabled = false;
 }

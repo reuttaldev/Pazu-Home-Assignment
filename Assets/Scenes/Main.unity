@@ -178,7 +178,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -1
+  m_SortingLayer: -2
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 257233a0cb4093c48a2a3c32ad7052be, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -356,7 +356,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -1
+  m_SortingLayer: -2
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 85e2fc7bc09eb4b4e85db9b616ea6bb3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -623,7 +623,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -657172763
-  m_SortingLayer: 1
+  m_SortingLayer: -1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: d58261dc95347f74291bc7df5e5a3681, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -825,7 +825,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -1
+  m_SortingLayer: -2
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: ca9f76e7d793aae48ba5273bf6b5b8a7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -887,9 +887,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1fc236567a0cbf45b9613f2042fbfbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hairManager: {fileID: 0}
-  windStrength: 0.3
-  windRadius: 1.5
+  hairManager: {fileID: 1874344021}
+  offset: {x: 0, y: 0}
 --- !u!212 &1354430920
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1093,7 +1092,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -1
+  m_SortingLayer: -2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: e929c2556db1310499665cdb72f1528c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1286,8 +1285,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79e41d95b1c4b02469244a53124270f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hairManager: {fileID: 0}
+  hairManager: {fileID: 1874344021}
   cutCooldown: 0.08
+  offset: {x: -0.8, y: 0}
 --- !u!212 &1788941040
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1436,9 +1436,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardCount: 200
-  maxHeight: 1.5
-  defaultHeight: 1
-  minHeight: 0.05
+  maxLength: 3
+  defaultLength: 1
+  minLength: 0.1
   width: 1
   arcRadiusX: 2
   arcRadiusY: 1.67
@@ -1449,6 +1449,11 @@ MonoBehaviour:
   - {fileID: 6508710021459007597, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
   - {fileID: 4154490803921122654, guid: 489042ae447c09748be917874f8a1715, type: 3}
   - {fileID: 3491506567928574885, guid: 494ba3723fb9fb94dafd5e3191c2a7f3, type: 3}
+  scissors: {fileID: 1788941038}
+  bladeRadius: 0.1
+  hairExtension: {fileID: 1928223123}
+  growRadius: 0.35
+  growRate: 8
 --- !u!4 &1874344022
 Transform:
   m_ObjectHideFlags: 0
@@ -1512,9 +1517,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bae4db45e8084943be83ccc200c44a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hairManager: {fileID: 0}
-  growRate: 0.5
-  growRadius: 0.6
+  hairManager: {fileID: 1874344021}
+  growCooldown: 0.08
+  offset: {x: 0, y: 0.7}
 --- !u!212 &1928223125
 SpriteRenderer:
   m_ObjectHideFlags: 0

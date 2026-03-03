@@ -6,12 +6,12 @@ public class FaceTarget : MonoBehaviour
     [SerializeField] float speed = 15f;
     [SerializeField] Vector2 spriteForward = Vector2.up;
 
-    float _smoothedAngle;
+    float smoothedAngle;
 
     void Update()
     {
-        _smoothedAngle = Mathf.LerpAngle(_smoothedAngle, AngleToTarget(), Time.deltaTime * speed);
-        transform.rotation = Quaternion.Euler(0, 0, _smoothedAngle);
+        smoothedAngle = Mathf.LerpAngle(smoothedAngle, AngleToTarget(), Time.deltaTime * speed);
+        transform.rotation = Quaternion.Euler(0, 0, smoothedAngle);
     }
 
     float AngleToTarget()

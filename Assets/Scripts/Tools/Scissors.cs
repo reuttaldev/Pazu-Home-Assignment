@@ -5,13 +5,15 @@ public class Scissors : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] float cutCooldown = 0.08f;
+    [SerializeField] Vector2 offset;
+    public Vector2 Offset => offset;
 
-    Animator _animator;
-    float _cutTimer;
+    Animator animator;
+    float    cutTimer;
 
     void Awake()
     {
-        _animator = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
     }
 
     protected override void Start()
@@ -22,16 +24,22 @@ public class Scissors : DraggableTool
     protected override void OnBegin(Vector2 pos)
     {
         transform.rotation = Quaternion.Euler(0, 0, 90f);
-        _cutTimer = 0f;
-        _animator.SetBool("active", true);
+        cutTimer = 0f;
+        animator.SetBool("active", true);
     }
 
     protected override void OnMove(Vector2 pos)
     {
+        cutTimer -= Time.deltaTime;
+        if (cutTimer <= 0f)
+        {
+            hairManager.CutHair(pos + offset);
+            cutTimer = cutCooldown;
+        }
     }
 
     protected override void OnEnd()
     {
-        _animator.SetBool("active", false);
+        animator.SetBool("active", false);
     }
 }

@@ -8,13 +8,13 @@ using UnityEngine;
 public abstract class DraggableTool : MonoBehaviour
 {
     protected bool IsDragging { get; private set; }
-    private Vector3 _restPosition;
-    private Quaternion _restRotation;
+    private Vector3 restPosition;
+    private Quaternion restRotation;
 
     protected virtual void Start()
     {
-        _restPosition = transform.position;
-        _restRotation = transform.rotation;
+        restPosition = transform.position;
+        restRotation = transform.rotation;
     }
 
     public void OnDragBegin(Vector2 pos)
@@ -32,7 +32,7 @@ public abstract class DraggableTool : MonoBehaviour
     public void OnDragEnd()
     {
         IsDragging = false;
-        transform.SetPositionAndRotation(_restPosition, _restRotation);
+        transform.SetPositionAndRotation(restPosition, restRotation);
         OnEnd();
     }
     protected abstract void OnBegin(Vector2 pos);

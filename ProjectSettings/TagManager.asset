@@ -41,9 +41,9 @@ TagManager:
   - name: Background
     uniqueID: 1649957323
     locked: 0
-  - name: Default
-    uniqueID: 0
-    locked: 0
   - name: Hair
     uniqueID: 3637794533
+    locked: 0
+  - name: Default
+    uniqueID: 0
     locked: 0

@@ -6,8 +6,8 @@ public class InputManager : MonoBehaviour
     [SerializeField] Camera mainCamera;
     [SerializeField] LayerMask toolLayerMask;
 
-    DraggableTool _activeTool;
-    bool _dragging;
+    DraggableTool activeTool;
+    bool dragging;
 
     void Update()
     {
@@ -20,30 +20,30 @@ public class InputManager : MonoBehaviour
         Vector2 worldPos = ScreenToWorld(screenPos);
 
         // ===== Press =====
-        if (!_dragging && pointer.press.wasPressedThisFrame)
+        if (!dragging && pointer.press.wasPressedThisFrame)
         {
             Collider2D hit = Physics2D.OverlapPoint(worldPos, toolLayerMask);
 
             if (hit != null && hit.TryGetComponent(out DraggableTool tool))
             {
-                _activeTool = tool;
-                _dragging = true;
-                _activeTool.OnDragBegin(worldPos);
+                activeTool = tool;
+                dragging = true;
+                activeTool.OnDragBegin(worldPos);
             }
         }
 
         // ===== Drag =====
-        else if (_dragging)
+        else if (dragging)
         {
             if (pointer.press.wasReleasedThisFrame)
             {
-                _activeTool.OnDragEnd();
-                _activeTool = null;
-                _dragging = false;
+                activeTool.OnDragEnd();
+                activeTool = null;
+                dragging = false;
                 return;
             }
 
-            _activeTool.OnDragMove(worldPos);
+            activeTool.OnDragMove(worldPos);
         }
     }
 
