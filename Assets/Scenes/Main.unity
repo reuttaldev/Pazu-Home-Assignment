@@ -178,7 +178,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -2
+  m_SortingLayer: -1
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 257233a0cb4093c48a2a3c32ad7052be, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -356,7 +356,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -2
+  m_SortingLayer: -1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 85e2fc7bc09eb4b4e85db9b616ea6bb3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -623,7 +623,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -657172763
-  m_SortingLayer: -1
+  m_SortingLayer: 1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: d58261dc95347f74291bc7df5e5a3681, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -825,7 +825,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -2
+  m_SortingLayer: -1
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: ca9f76e7d793aae48ba5273bf6b5b8a7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -888,7 +888,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
-  offset: {x: 0, y: 0.3}
+  offset: {x: 1.23, y: 0.3}
 --- !u!212 &1354430920
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -927,8 +927,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 2010264203
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: fead8a8354dc0cb48852f6d28709a9cc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1094,7 +1094,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1649957323
-  m_SortingLayer: -2
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: e929c2556db1310499665cdb72f1528c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1234,7 +1234,7 @@ Transform:
   m_GameObject: {fileID: 1737811769}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.64, z: 0.6362319}
+  m_LocalPosition: {x: 0, y: -0.2, z: 0.6362319}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1289,7 +1289,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
-  cutCooldown: 0.08
+  cutCooldown: 0.04
   offset: {x: 0, y: 0.8}
 --- !u!212 &1788941040
 SpriteRenderer:
@@ -1329,8 +1329,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 2010264203
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: c8e8f3f3e9aa04942a940ce0abc85036, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1455,15 +1455,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d784c5916a483b5478e854995d666d5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardCount: 200
+  cardCount: 500
   maxLength: 3
   defaultLength: 1
   minLength: 0.1
   width: 1
   arcRadiusX: 2
   arcRadiusY: 1.67
-  layerCount: 6
-  layerSpacing: 0.01
+  layerCount: 5
+  layerSpacing: 0.03
   cardPrefabs:
   - {fileID: 9068591133229764975, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
   - {fileID: 6508710021459007597, guid: fca7a972b6f850a4cb854571317cf51a, type: 3}
@@ -1476,7 +1476,7 @@ MonoBehaviour:
   growRate: 8
   hairDryer: {fileID: 1354430918}
   windStrength: 8
-  windRange: 6
+  windRange: 3
   windWidth: 0.6
   windFalloffPower: 1
   dryerAnimTime: 0
@@ -1490,7 +1490,7 @@ Transform:
   m_GameObject: {fileID: 1874344020}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.08, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1546,7 +1546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
-  growCooldown: 0.08
+  growCooldown: 0.04
   offset: {x: 0, y: 0.7}
 --- !u!212 &1928223125
 SpriteRenderer:
@@ -1586,8 +1586,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 2010264203
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: df6da6d22ee8d94479e2e76b529f5865, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
