@@ -1462,7 +1462,7 @@ MonoBehaviour:
   width: 1
   arcRadiusX: 2
   arcRadiusY: 1.67
-  layerCount: 4
+  layerCount: 6
   layerSpacing: 0.01
   cardPrefabs:
   - {fileID: 9068591133229764975, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
@@ -1476,9 +1476,9 @@ MonoBehaviour:
   growRate: 8
   hairDryer: {fileID: 1354430918}
   windStrength: 8
-  windRange: 4
+  windRange: 6
   windWidth: 0.6
-  windFalloffPower: 1.5
+  windFalloffPower: 1
   dryerAnimTime: 0
   dryerAnimDuration: 0.1
 --- !u!4 &1874344022

@@ -1,81 +1,156 @@
 # Pazu Home Assignment
 
-## How It Works
+This project is a 2D hair styling mobile game, made with Unity 2022.3.62f3 in a few short days.
+There are 3 main interactive tools (Hair Dryer, Scissors, Hair Extension) operating on ~500 sprite-based hair strands.
 
-Hair is rendered as overlapping sprite cards (`hair.png`) distributed across multiple depth layers along an elliptical arc. All effects are faked:
-- **Wind** — each card in the dryer's elliptical beam rotates toward the wind direction; `WobbleComponent` adds a sine-wave sway on top
-- **Cut** — reduce Y scale from the tip (pivot at root, so the root stays fixed)
-- **Grow** — increase Y scale toward the tip
+Hair is rendered as overlapping sprite cards (`hair.png`). They are distributed across multiple depth layers along an elliptical arc simulating a hairline.
 
-Bottom-center pivot is the key geometric choice: `transform.position` is always the scalp root and never moves. Scaling Y only moves the tip, so cut and grow require no offset arithmetic.
+All mechanics and effects are "faked" using math calculation. Usage of colliders and physics components are kept to a minimum to meet the efficiency demands of a mobile game with a large number of objects (hairs).
 
 ---
 
-## Tools
+# Tools
 
-| Tool | Sprite | Mechanic |
-|------|--------|----------|
-| Hair Dryer | `hairDrayer.png` | Drag over hair — nearby cards wave side to side |
-| Scissors | `scisors.png` | Drag across hair — cards in range become shorter |
-| Hair Extension | `hairGrow.png` | Drag over hair — cards in range grow longer |
+| Tool | Sprite | Mechanic | Execution |
+|------|--------|----------|-----------|
+| Hair Dryer | `hairDrayer.png` | Drag over hair — nearby cards rotate toward the wind direction | Rotates each card in range toward the dryer's facing direction; strength scales with distance (closer = stronger); X-scale flip animation simulates air ruffling |
+| Scissors | `scisors.png` | Drag across hair — cards in range become shorter | Reduces Y scale from the tip; pivot is at bottom-center so `transform.position` (scalp root) never moves |
+| Hair Extension | `hairGrow.png` | Drag over hair — cards in range grow longer | Increases Y scale toward the tip at a fixed `growRate` per tick |
 
 ---
 
-## Architecture
+# Architecture
 
-### DraggableTool (abstract base class)
+## DraggableTool (abstract base class)
 All three tools extend `DraggableTool`. It handles:
 - **Snap-back**: captures rest position and rotation in `Start()`, restores both on release via `SetPositionAndRotation`
 - **Follow pointer**: moves the sprite to the finger/mouse position each frame
 - **Drag lifecycle**: `OnDragBegin` → `OnDragMove` → `OnDragEnd`, routed by `InputManager`
 - Subclasses implement `OnBegin`, `OnMove`, `OnEnd` for tool-specific behavior
 
-### InputManager
-Uses `Pointer.current` from the new Input System — a single abstraction that covers both mouse (Editor) and touch (mobile) with no extra configuration. On press, does a `Physics2D.OverlapPoint` hit test against `toolLayerMask` to find the tool. Tracks one active tool at a time until the pointer is released.
+## InputManager
+Uses `Pointer.current` from the new Input System for both mouse (Editor) and touch (mobile). On press, does a `Physics2D.OverlapPoint` hit test to find the tool.
 
-### HairCard
-Lightweight `MonoBehaviour` data bag attached to each hair card prefab. Stores per-card references and state — no logic lives here. All fields are written by `HairManager`.
+## HairCard
+Lightweight `MonoBehaviour` data bag attached to each hair card prefab. Stores per-card references and state. No logic lives here for correct de-coupling.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `SR` | `SpriteRenderer` | Cached at spawn via `Init()` |
-| `Anim` | `Animator` | Cached at spawn, null if prefab has no Animator |
-| `RestPosition` | `Vector3` | World-space root on the scalp — never changes |
-| `BaseRotation` | `Quaternion` | Outward-facing rotation — never changes |
-| `PhaseOffset` | `float` | Random 0–2π, desynchronizes sine wave per card |
-| `Amplitude` | `float` | Max sway angle in degrees, written by HairManager each frame |
-| `HeightFraction` | `float` | Current tip height as fraction of maxHeight (0–1) |
+## HairManager
+Owns all hair cards and all operations on them. Cards are spawned once in `Awake` and stored in `HairCard[] cards` for fast indexed iteration.
 
-### HairManager
-Owns all hair cards and all operations on them. Cards are spawned once in `Awake` and stored in `HairCard[] _cards` for fast indexed iteration.
-
-**Spawn layout:**
+### Instantiation 
 - Cards are distributed along an **elliptical arc** (`arcRadiusX`, `arcRadiusY`) at the top of the head, covering `±arcDeg` degrees
-- Multiple **depth layers** (`layerCount`, `layerSpacing`) stack concentric ellipses so inner layers sit closer to the scalp — each layer covers the full arc independently, producing horizontal depth not vertical sections
+- Multiple **depth layers** (`layerCount`, `layerSpacing`) stack concentric ellipses so inner layers sit closer to the scalp
 - Per-card random jitter in angle, scale, and height breaks visual repetition
 - Each layer is parented to its own `Layer_N` GameObject for scene hierarchy clarity
 - Sorting order per card is the layer index ±1 randomly, so cards within a layer interleave naturally
 
-**Wind animation:**
-`ApplyWind` reads the wind direction from `hairDryer.transform.right` and rotates every in-range card toward a target Z angle (`Atan2(-windDir.x, windDir.y)`). Strength scales with `windStrength * distanceFalloff`, where `distanceFalloff = Pow(1 - normSum, windFalloffPower)` — `normSum` is the normalized ellipse coordinate returned by `IsToolInRadius` (0 at center, 1 at edge). A sprite X-scale flip is applied every `dryerAnimDuration` seconds to simulate air-ruffling. `WobbleComponent` adds an independent sine-wave sway on top via `LateUpdate`.
+### Tool–Hair Detection Architecture
+Hair cards carry no `Collider2D` or `RigidBody` to decrease overhead. Instead, `HairManager` iterates over all cards and determines whether a tool is within range using optimized mathematical distance checks.
 
-**Tool detection — brute-force math (O(N), no physics):**
-All three tools iterate `cards[]` directly. Hair cards carry no `Collider2D`.
+Below is a comparison of the possible detection approaches, with a focus on identifying the most efficient solution for this project’s scale.
 
-`IsToolInRadius` has two overloads:
+#### Physics Queries (OverlapBox / OverlapCircle)
 
-| Overload | Signature | Used by |
-|----------|-----------|---------|
-| Simple | `(toolPos, card, alongRadiusSq, perpRadiusSq)` | Scissors, Hair Extension — uses `card.transform.up` axis, enforces segment bounds `[0, currentLength]` |
-| Full | `(toolPos, card, alongRadiusSq, perpRadiusSq, out normSum, applySegmentBounds, dir)` | Hair Dryer — custom `dir` axis, no segment bounds, outputs `normSum` for falloff |
+Each `HairCard` would have a `Collider2D`.  
+Tools would call:
 
-Both compute an **ellipse test**: `along²/alongRadiusSq + perp²/perpRadiusSq ≤ 1`. The dryer passes `-windDir` as axis (not the hair's up) so the ellipse is oriented along the wind beam, and disables segment bounds so the dryer works even above the hair tips.
+- `Physics2D.OverlapBoxNonAlloc` (Scissors)
+- `Physics2D.OverlapCircleNonAlloc` (Dryer / Extension)
 
-| Tool | Zone shape | alongRadius | perpRadius |
-|------|-----------|-------------|------------|
-| Scissors | Ellipse | `maxLength` (full card sweep) | `bladeRadius` |
-| Hair Dryer | Ellipse | `windRange` (beam length) | `windWidth` (beam width) |
-| Hair Extension | Ellipse | `maxLength` (full card sweep) | `growRadius` |
+Unity’s physics engine maintains a **BVH (Bounding Volume Hierarchy)** to accelerate spatial queries. Queries return only colliders overlapping the specified shape.
+
+**Cons**
+
+Although queries are efficient, the BVH must remain up-to-date. Hair cards rotate every frame due to wind animation. Any transform change (position, rotation, scale) marks the collider as dirty.
+This forces BVH maintenance continuously even when no tool is active.
+
+With 500–1000 rotating cards:
+- Continuous BVH updates
+- Physics overhead every frame
+- Cost exists even when not dragging tools
+
+---
+
+#### Static Colliders
+
+Each `HairCard` would have a `Collider2D` without a `Rigidbody2D`, making it static. Static colliders are very cheap in Unity — **as long as they never move**.  They are inserted once into the BVH and remain stable.
+
+**Cons**
+
+Similarly to the previous con, the wind animation rotates every card each frame. Therefore:
+- It is marked dirty.
+- It must be reprocessed in the BVH.
+- This happens every physics step.
+
+Additionally, when using `OnTriggerEnter2D` / `OnTriggerStay2D`, the physics checks run every physics step, therefore detection cost even when no tool is being dragged. This removes control over when detection runs and wastes resources.
+
+---
+
+#### Kinematic Rigidbody2D
+
+To avoid the issue where Unity would mark the colliders as dirty due to the wind, each `HairCard` would use:
+- `Collider2D`
+- `Rigidbody2D (Kinematic)`
+
+Kinematic bodies are designed for moving objects. Unity uses **fat AABBs with velocity prediction** to reduce frequent tree updates. Small positional movement can be absorbed without full BVH reinsertion.
+
+**Cons**
+Rotation alters the collider’s axis-aligned bounding box (AABB). Fat AABB prediction does not prevent BVH updates when bounds change shape. Therefore:
+- Every rotating card still requires BVH maintenance.
+- Cost runs every frame.
+- Cost runs even when no tool is active.
+
+With 500–1000 cards rotating continuously, this creates unnecessary physics overhead.
+
+---
+
+#### Brute-Force Mathematical Check
+
+`HairManager` stores all cards in an array. When a tool is dragged:
+- Iterate over `_cards[]`
+- Perform optimized math checks:
+  - `sqrMagnitude` for circle range
+  - Axis-aligned checks for scissors
+  - Dot product projections for correct local-axis behavior
+
+No colliders.
+No physics queries.
+No BVH.
+
+**Pros**
+
+At this scale:
+- 500 checks ≈ 2–5 µs
+- 1000 checks ≈ 5–10 µs
+- 60,000 checks/sec ≈ ~0.3 ms/sec
+
+This cost is negligible on mobile.
+
+Additionally:
+- Detection runs only while dragging.
+- No per-frame physics maintenance.
+- No editor setup required.
+- No layer configuration.
+- Fully deterministic.
+- Consistent architecture across all tools.
+
+This decision should be revisited when the hair card count increases significantly.
+
+**Tool detection: brute-force math (O(N), no physics):**
+ Distance is measured as an ellipse: `alongRadius` limits how far along the hair the tool can be, `perpRadius` limits how far off the hair axis it can be.
+
+**Ellipse math** 
+1. Project `rootToTool` onto the axis: `along = Dot(rootToTool, dir)`
+2. Reject if `applySegmentBounds` and `along` is outside `[0, currentLength]`
+3. Compute perpendicular component: `perp = rootToTool - dir * along`
+4. Sum normalized squared distances: `normSum = along²/alongRadiusSq + perp.sqrMagnitude/perpRadiusSq`
+5. Return `normSum <= 1` (inside ellipse); `normSum` also encodes falloff (0 at center, 1 at edge)
+
+**Why the dryer passes `-windDir` as axis:**
+`IsToolInRadius` computes `rootToTool = toolPos - root` (tool's perspective). Wind needs the projection from the dryer's perspective: `dot(toRoot, windDir)`. Since `dot(rootToTool, -windDir) = dot(toRoot, windDir)`, passing `-windDir` corrects the direction with no extra code.
+
+**Wind falloff:**
+`ApplyWind` reads wind direction from `hairDryer.transform.right` and rotates each in-range card toward the target Z angle (`Atan2(-windDir.x, windDir.y)`). Falloff is `Mathf.Pow(1 - normSum, windFalloffPower)` — `windFalloffPower` is Inspector-exposed: `1` = linear, `< 1` = stays strong longer, `> 1` = weakens quickly.
 
 **Why `Dot(toTool, alongHair)` gives the projection along the hair:**
 
@@ -152,44 +227,8 @@ root  *----X----+-------------
 ```
 Then `offset.sqrMagnitude` gives the squared perpendicular distance — no `sqrt` needed, just a comparison against `radius²`.
 
-See `Assets/Docs/ToolHairDetectionDecision.md` for the full analysis including why brute-force outperforms `OverlapBoxNonAlloc` / `OverlapCircleNonAlloc` for this layout.
+## FaceTarget
+A component that rotates a tool to always face an assigned Transform. `Lerp` is used for a smooth transition.y Enabled/disabled by the tool during drag so it snaps back with the rest rotation on release.
 
-### FaceTarget
-Reusable component that smoothly rotates a tool to always face an assigned Transform. Configurable `spriteForward` vector accounts for sprites that don't naturally point up. Enabled/disabled by the tool during drag so it snaps back with the rest rotation on release.
-
-### WobbleComponent (`WobbleAnim.cs`)
-Reusable component that adds a sine-wave rotation offset each `LateUpdate`. Runs after `FaceTarget` (which uses `Update`) so the wobble always layers on top cleanly. Enabled/disabled by the tool during drag.
-
-### Tool behavior
-| Tool | Rotation | Animation |
-|------|----------|-----------|
-| Hair Dryer | `FaceTarget` — smoothly faces target while dragging | `WobbleComponent` — gentle sway; X-scale flip every `dryerAnimDuration` seconds while wind is applied |
-| Scissors | Snaps to 90° (pointing left) on pickup, holds until release | Animator `"active"` bool |
-| Hair Extension | No rotation change | `WobbleComponent` — fast shake |
-
----
-
-## Project Structure
-
-```
-Assets/
-  Scripts/
-    Hair/
-      HairCard.cs         — data bag component, one per card prefab
-    Managers/
-      HairManager.cs      — spawns cards, owns all hair logic
-      InputManager.cs     — routes touch/mouse input to the active tool
-    Tools/
-      DraggableTool.cs    — abstract drag base class
-      HairDryer.cs
-      Scissors.cs
-      HairExtension.cs
-    Graphics/
-      FaceTarget.cs       — rotates tool toward a target Transform
-      WobbleAnim.cs       — sine-wave rotation wobble component
-  Sprites/
-  Scenes/
-    Main.unity
-Docs/
-  HairTouchDetection_Comparison_And_Decision.txt
-```
+## WobbleComponent (`WobbleAnim.cs`)
+A component that adds a sine-wave rotation offset each `LateUpdate`. Runs after `FaceTarget` (which uses `Update`) so the wobble always layers on top cleanly. Enabled/disabled by the tool during drag.
