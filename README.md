@@ -3,7 +3,7 @@
 ## How It Works
 
 Hair is rendered as overlapping sprite cards (`hair.png`) distributed across multiple depth layers along an elliptical arc. All effects are faked:
-- **Wind** — sine wave oscillation per card, phase-shifted so they move independently
+- **Wind** — each card in the dryer's elliptical beam rotates toward the wind direction; `WobbleComponent` adds a sine-wave sway on top
 - **Cut** — reduce Y scale from the tip (pivot at root, so the root stays fixed)
 - **Grow** — increase Y scale toward the tip
 
@@ -57,18 +57,25 @@ Owns all hair cards and all operations on them. Cards are spawned once in `Awake
 - Sorting order per card is the layer index ±1 randomly, so cards within a layer interleave naturally
 
 **Wind animation:**
-`Amplitude` is a rotation angle in degrees. Each frame every card rotates around its fixed root (`RestPosition`) by `Sin(t * windFreq + PhaseOffset) * Amplitude`. No world-space X offset is applied — rotation-only works correctly for all card orientations on the arc.
+`ApplyWind` reads the wind direction from `hairDryer.transform.right` and rotates every in-range card toward a target Z angle (`Atan2(-windDir.x, windDir.y)`). Strength scales with `windStrength * distanceFalloff`, where `distanceFalloff = Pow(1 - normSum, windFalloffPower)` — `normSum` is the normalized ellipse coordinate returned by `IsToolInRadius` (0 at center, 1 at edge). A sprite X-scale flip is applied every `dryerAnimDuration` seconds to simulate air-ruffling. `WobbleComponent` adds an independent sine-wave sway on top via `LateUpdate`.
 
 **Tool detection — brute-force math (O(N), no physics):**
 All three tools iterate `cards[]` directly. Hair cards carry no `Collider2D`.
 
-Each tool uses a shared `IsToolInRadius` helper that checks whether the tool is within a radius of any point along the root-to-tip segment — so tools respond correctly anywhere along the hair length, not just at the root.
+`IsToolInRadius` has two overloads:
 
-| Tool | Shape | Math |
-|------|-------|------|
-| Scissors | Circle (`bladeRadius`) | `IsToolInRadius` proximity; cut height via `Dot(toScissors, card.transform.up)` |
-| Hair Dryer | Circle | `IsToolInRadius` proximity; wind force via `-Dot(windDir, card.transform.right)` |
-| Hair Extension | Circle (`growRadius`) | `IsToolInRadius` proximity; fixed `growRate * dt` per card |
+| Overload | Signature | Used by |
+|----------|-----------|---------|
+| Simple | `(toolPos, card, alongRadiusSq, perpRadiusSq)` | Scissors, Hair Extension — uses `card.transform.up` axis, enforces segment bounds `[0, currentLength]` |
+| Full | `(toolPos, card, alongRadiusSq, perpRadiusSq, out normSum, applySegmentBounds, dir)` | Hair Dryer — custom `dir` axis, no segment bounds, outputs `normSum` for falloff |
+
+Both compute an **ellipse test**: `along²/alongRadiusSq + perp²/perpRadiusSq ≤ 1`. The dryer passes `-windDir` as axis (not the hair's up) so the ellipse is oriented along the wind beam, and disables segment bounds so the dryer works even above the hair tips.
+
+| Tool | Zone shape | alongRadius | perpRadius |
+|------|-----------|-------------|------------|
+| Scissors | Ellipse | `maxLength` (full card sweep) | `bladeRadius` |
+| Hair Dryer | Ellipse | `windRange` (beam length) | `windWidth` (beam width) |
+| Hair Extension | Ellipse | `maxLength` (full card sweep) | `growRadius` |
 
 **Why `Dot(toTool, alongHair)` gives the projection along the hair:**
 
@@ -156,7 +163,7 @@ Reusable component that adds a sine-wave rotation offset each `LateUpdate`. Runs
 ### Tool behavior
 | Tool | Rotation | Animation |
 |------|----------|-----------|
-| Hair Dryer | `FaceTarget` — smoothly faces target while dragging | `WobbleComponent` — gentle sway |
+| Hair Dryer | `FaceTarget` — smoothly faces target while dragging | `WobbleComponent` — gentle sway; X-scale flip every `dryerAnimDuration` seconds while wind is applied |
 | Scissors | Snaps to 90° (pointing left) on pickup, holds until release | Animator `"active"` bool |
 | Hair Extension | No rotation change | `WobbleComponent` — fast shake |
 

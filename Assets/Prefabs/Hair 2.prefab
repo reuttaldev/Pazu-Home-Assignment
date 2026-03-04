@@ -61,6 +61,14 @@ PrefabInstance:
       value: 0.7411765
       objectReference: {fileID: 0}
     - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
+      propertyPath: m_FlipX
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
+      propertyPath: m_FlipY
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
       propertyPath: m_Color.b
       value: 0.18039216
       objectReference: {fileID: 0}

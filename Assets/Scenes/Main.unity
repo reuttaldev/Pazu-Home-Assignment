@@ -888,7 +888,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
-  offset: {x: 1.8, y: 0.37}
+  offset: {x: 0, y: 0.3}
 --- !u!212 &1354430920
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1019,8 +1019,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99ce9a5a94cc007419eca60164570031, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 8
-  angle: 3
+  speed: 13
+  angle: 5
 --- !u!114 &1354430924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1234,7 +1234,7 @@ Transform:
   m_GameObject: {fileID: 1737811769}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.62, z: 0.6362319}
+  m_LocalPosition: {x: 0, y: 0.64, z: 0.6362319}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1475,8 +1475,12 @@ MonoBehaviour:
   growRadius: 0.35
   growRate: 8
   hairDryer: {fileID: 1354430918}
-  windStrength: 1
-  windRadius: 0.5
+  windStrength: 8
+  windRange: 4
+  windWidth: 0.6
+  windFalloffPower: 1.5
+  dryerAnimTime: 0
+  dryerAnimDuration: 0.1
 --- !u!4 &1874344022
 Transform:
   m_ObjectHideFlags: 0
