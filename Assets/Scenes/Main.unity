@@ -1035,7 +1035,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1737811770}
   speed: 15
-  spriteForward: {x: 1, y: 0}
+  spriteAngleOffset: 0
+  minAngle: -180
+  maxAngle: 180
 --- !u!1 &1403321212
 GameObject:
   m_ObjectHideFlags: 0
@@ -1251,6 +1253,7 @@ GameObject:
   - component: {fileID: 1788941038}
   - component: {fileID: 1788941041}
   - component: {fileID: 1788941042}
+  - component: {fileID: 1788941043}
   m_Layer: 8
   m_Name: Scissors
   m_TagString: Untagged
@@ -1266,7 +1269,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1788941036}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -4.5, z: 0}
   m_LocalScale: {x: 1.0798101, y: 0.9025, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1287,7 +1290,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
   cutCooldown: 0.08
-  offset: {x: -0.8, y: 0}
+  offset: {x: 0, y: 0.8}
 --- !u!212 &1788941040
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1406,6 +1409,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1788941043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788941036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dee087b00be556e468ce25516c903375, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 1737811770}
+  speed: 15
+  spriteAngleOffset: 90
+  minAngle: -180
+  maxAngle: 180
 --- !u!1 &1874344020
 GameObject:
   m_ObjectHideFlags: 0
@@ -1483,6 +1503,7 @@ GameObject:
   - component: {fileID: 1928223126}
   - component: {fileID: 1928223127}
   - component: {fileID: 1928223128}
+  - component: {fileID: 1928223129}
   m_Layer: 8
   m_Name: Hair Extension
   m_TagString: Untagged
@@ -1652,6 +1673,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 40
   angle: 1
+--- !u!114 &1928223129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1928223121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dee087b00be556e468ce25516c903375, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  speed: 15
+  spriteAngleOffset: 0
+  minAngle: -180
+  maxAngle: 180
 --- !u!1 &2134173870
 GameObject:
   m_ObjectHideFlags: 0

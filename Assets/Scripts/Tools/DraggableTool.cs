@@ -4,6 +4,7 @@ using UnityEngine;
 // Subclasses implement the mechanic-specific methods
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(FaceTarget))]
 
 public abstract class DraggableTool : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public abstract class DraggableTool : MonoBehaviour
     {
         restPosition = transform.position;
         restRotation = transform.rotation;
+        GetComponent<FaceTarget>().enabled = false; // subclasses enable it during drag as needed
     }
 
     public void OnDragBegin(Vector2 pos)
