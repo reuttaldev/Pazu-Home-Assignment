@@ -1,7 +1,7 @@
 # Pazu Home Assignment
 
 This project is a 2D hair styling mobile game, made with Unity 2022.3.62f3 in a few short days.
-There are 3 main interactive tools (Hair Dryer, Scissors, Hair Extension) operating on ~500 sprite-based hair strands.
+There are 3 main interactive tools (Hair Dryer, Scissors, Hair Extension) operating on 500 sprite-based hair strands.
 
 Hair is rendered as overlapping sprite cards (`hair.png`). They are distributed across multiple depth layers along an elliptical arc simulating a hairline.
 
