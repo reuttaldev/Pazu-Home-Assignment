@@ -5,27 +5,26 @@ using UnityEngine;
 public class HairDryer : DraggableTool
 {
     [SerializeField] HairManager hairManager;
-    [SerializeField] Vector2 offset;
 
     WobbleComponent wobble;
     FaceTarget faceTarget;
 
-    protected override void Start()
+    protected void Awake()
     {
-        base.Start();
         wobble = GetComponent<WobbleComponent>();
         faceTarget = GetComponent<FaceTarget>();
     }
-
-    protected override void OnBegin(Vector2 pos)
+    protected override void OnBegin(Vector2 pos){}
+    protected override void OnMove(Vector2 pos)
     {
         wobble.enabled = true;
         faceTarget.enabled = true;
     }
 
-    protected override void OnMove(Vector2 pos)
+    void Update()
     {
-        hairManager.ApplyWind(pos + offset);
+        if(IsDragging)
+            hairManager.ApplyWind((Vector2)transform.position, (Vector2)transform.right);
     }
 
     protected override void OnEnd()

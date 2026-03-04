@@ -74,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 6562916164329293236, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
       propertyPath: m_SortingLayerID
@@ -84,7 +84,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hair 2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 0}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
