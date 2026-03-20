@@ -20,11 +20,13 @@ public class HairManager : MonoBehaviour
     [Header("Scissors")]
     [SerializeField] Scissors scissors;
     [SerializeField] float bladeRadius = 0.2f;
+    [SerializeField] Vector2 scissorsOffset;
 
     [Header("Hair Extension")]
     [SerializeField] HairExtension hairExtension;
     [SerializeField] float growRadius = 0.6f;
     [SerializeField] float growRate = 0.5f;
+    [SerializeField] Vector2 extensionOffset;
 
     [Header("Dryer")]
     [SerializeField] HairDryer hairDryer;
@@ -33,6 +35,7 @@ public class HairManager : MonoBehaviour
     [SerializeField] float windWidth = 0.5f;
     [SerializeField] float windFalloffPower = 1f;
     [SerializeField] float dryerAnimTime = 0f,dryerAnimDuration=0.1f;
+    [SerializeField] Vector2 dryerOffset;
 
     const float unitWorldLen = 1.6f; // world units per unit of card localScale.y (hair.png: 169px @ 100 PPU)
 
@@ -53,6 +56,7 @@ public class HairManager : MonoBehaviour
     }
 public void ApplyWind(Vector2 toolPos)
 {
+    toolPos += (Vector2)hairDryer.transform.TransformVector(dryerOffset);
     Vector2 windDir = ((Vector2)hairDryer.transform.right).normalized;
     float targetZ = Mathf.Atan2(-windDir.x, windDir.y) * Mathf.Rad2Deg;
 
@@ -78,6 +82,7 @@ public void ApplyWind(Vector2 toolPos)
 }
     public void CutHair(Vector2 toolPos)
     {
+        toolPos += (Vector2)scissors.transform.TransformVector(scissorsOffset);
         for (int i = 0; i < cards.Length; i++)
         {
             HairCard card = cards[i];
@@ -95,6 +100,7 @@ public void ApplyWind(Vector2 toolPos)
     }
     public void GrowHair(Vector2 toolPos)
     {
+        toolPos += (Vector2)hairExtension.transform.TransformVector(extensionOffset);
         for (int i = 0; i < cards.Length; i++)
         {
             HairCard card = cards[i];
@@ -220,17 +226,17 @@ public void ApplyWind(Vector2 toolPos)
         if (scissors != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere((Vector2)scissors.transform.position + scissors.Offset, bladeRadius);
+            Gizmos.DrawWireSphere((Vector2)scissors.transform.position + (Vector2)scissors.transform.TransformVector(scissorsOffset), bladeRadius);
         }
         if (hairExtension != null)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere((Vector2)hairExtension.transform.position + hairExtension.Offset, growRadius);
+            Gizmos.DrawWireSphere((Vector2)hairExtension.transform.position + (Vector2)hairExtension.transform.TransformVector(extensionOffset), growRadius);
         }
         if (hairDryer != null)
         {
             Gizmos.color = Color.magenta;
-            Vector3 pos   = (Vector2)hairDryer.transform.position + hairDryer.Offset;
+            Vector3 pos   = (Vector2)hairDryer.transform.position + (Vector2)hairDryer.transform.TransformVector(dryerOffset);
             Vector3 windDir = hairDryer.transform.right;
             Vector3 right   = hairDryer.transform.up;
             Vector3 tip   = pos + windDir * windRange;

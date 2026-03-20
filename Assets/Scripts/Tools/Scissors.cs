@@ -1,12 +1,11 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(FaceTarget))]
 public class Scissors : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] float cutCooldown = 0.08f;
-    [SerializeField] Vector2 offset;
-    public Vector2 Offset => (Vector2)(transform.rotation * (Vector3)offset);
     FaceTarget faceTarget;
     Animator animator;
     float cutTimer;
@@ -15,6 +14,7 @@ public class Scissors : DraggableTool
     {
         animator = GetComponent<Animator>();
         faceTarget = GetComponent<FaceTarget>();
+        faceTarget.enabled = false;
 
     }
 
@@ -31,7 +31,7 @@ public class Scissors : DraggableTool
         cutTimer -= Time.deltaTime;
         if (cutTimer <= 0f)
         {
-            hairManager.CutHair(pos + Offset);
+            hairManager.CutHair(pos);
             cutTimer = cutCooldown;
         }
     }

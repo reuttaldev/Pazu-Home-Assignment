@@ -4,9 +4,6 @@ public class HairExtension : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] float growCooldown = 0.08f;
-    [SerializeField] Vector2 offset;
-    public Vector2 Offset => offset;
-
     WobbleComponent wobble;
     float growTimer;
 
@@ -27,7 +24,7 @@ public class HairExtension : DraggableTool
         growTimer -= Time.deltaTime;
         if (growTimer <= 0f)
         {
-            hairManager.GrowHair(pos + offset);
+            hairManager.GrowHair(pos);
             growTimer = growCooldown;
         }
     }
