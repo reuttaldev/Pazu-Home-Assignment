@@ -330,7 +330,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 1
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -449,7 +449,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 8.55
+      scalar: 8.64
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -5719,6 +5719,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hairManager: {fileID: 1874344021}
+  fanParticles: {fileID: 114343802}
 --- !u!212 &1354430920
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5850,7 +5851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 13
-  angle: 5
+  angle: 0.77
 --- !u!114 &1354430924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5865,8 +5866,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1737811770}
   speed: 15
-  minAngle: 40
-  maxAngle: 130
+  minAngle: 30
+  maxAngle: 160
   flip: 1
 --- !u!1 &1403321212
 GameObject:
@@ -6064,7 +6065,7 @@ Transform:
   m_GameObject: {fileID: 1737811769}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.2, z: 0.6362319}
+  m_LocalPosition: {x: 0, y: 0.34, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6252,9 +6253,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1737811770}
   speed: 15
-  minAngle: 70
-  maxAngle: 110
-  flip: 0
+  minAngle: 60
+  maxAngle: 120.2
+  flip: 1
 --- !u!1 &1874344020
 GameObject:
   m_ObjectHideFlags: 0
@@ -6284,7 +6285,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d784c5916a483b5478e854995d666d5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardCount: 500
+  cardCount: 50
   maxLength: 3
   defaultLength: 1
   minLength: 0.1
@@ -6299,17 +6300,23 @@ MonoBehaviour:
   - {fileID: 4154490803921122654, guid: 489042ae447c09748be917874f8a1715, type: 3}
   - {fileID: 3491506567928574885, guid: 494ba3723fb9fb94dafd5e3191c2a7f3, type: 3}
   scissors: {fileID: 1788941038}
-  bladeRadius: 0.11
-  scissorsOffset: {x: 0, y: 0.75}
+  bladeLength: 0.08
+  bladeRadius: 0.21
+  scissorsOffset: {x: 0, y: 0.67}
   hairExtension: {fileID: 1928223123}
-  growRadius: 0.46
+  growLength: 0.37
+  growRadius: 0.57
   growRate: 8
   extensionOffset: {x: 0, y: 0.53}
   hairDryer: {fileID: 1354430918}
-  windStrength: 15.82
-  windRange: 3
-  windWidth: 0.6
-  windFalloffPower: 5.49
+  windStrength: 10
+  windRange: 3.86
+  windWidth: 0.54
+  windFalloffPower: 2
+  windSpread: 30
+  windSpreadCurve: 2
+  windSpreadWidth: 0.5
+  blastRadius: 0.3
   dryerAnimTime: 0
   dryerAnimDuration: 0.1
   dryerOffset: {x: 0.89, y: 0.23}

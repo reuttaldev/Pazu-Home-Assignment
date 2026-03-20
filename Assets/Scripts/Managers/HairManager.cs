@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class HairManager : MonoBehaviour
 {
@@ -19,11 +19,13 @@ public class HairManager : MonoBehaviour
 
     [Header("Scissors")]
     [SerializeField] Scissors scissors;
+    [SerializeField] float bladeLength = 0.4f;
     [SerializeField] float bladeRadius = 0.2f;
     [SerializeField] Vector2 scissorsOffset;
 
     [Header("Hair Extension")]
     [SerializeField] HairExtension hairExtension;
+    [SerializeField] float growLength = 0.8f;
     [SerializeField] float growRadius = 0.6f;
     [SerializeField] float growRate = 0.5f;
     [SerializeField] Vector2 extensionOffset;
@@ -34,6 +36,10 @@ public class HairManager : MonoBehaviour
     [SerializeField] float windRange = 1.5f;
     [SerializeField] float windWidth = 0.5f;
     [SerializeField] float windFalloffPower = 1f;
+    [SerializeField] float windSpread = 60f;
+    [SerializeField] float windSpreadCurve = 2f;
+    [SerializeField] float windSpreadWidth = 0.5f;
+    [SerializeField] float blastRadius = 0.3f;
     [SerializeField] float dryerAnimTime = 0f,dryerAnimDuration=0.1f;
     [SerializeField] Vector2 dryerOffset;
 
@@ -41,42 +47,73 @@ public class HairManager : MonoBehaviour
 
     HairCard[] cards;
     float noiseVal = 0.08f;
+    float bladeLengthSq;
     float bladeRadiusSq;
+    float growLengthSq;
     float growRadiusSq;
     float wRangeSq;
     float wWidthSq;
+    float blastRadiusSq;
     void Awake()
     {
         cards = new HairCard[cardCount];
+        bladeLengthSq = bladeLength * bladeLength;
         bladeRadiusSq = bladeRadius * bladeRadius;
+        growLengthSq  = growLength  * growLength;
         growRadiusSq  = growRadius  * growRadius;
-        wRangeSq = windRange * windRange;
-        wWidthSq = windWidth * windWidth;
+        wRangeSq      = windRange   * windRange;
+        wWidthSq      = windWidth   * windWidth;
+        blastRadiusSq = blastRadius * blastRadius;
         SpawnCards();
     }
 public void ApplyWind(Vector2 toolPos)
 {
-    toolPos += (Vector2)hairDryer.transform.TransformVector(dryerOffset);
-    Vector2 windDir = ((Vector2)hairDryer.transform.right).normalized;
-    float targetZ = Mathf.Atan2(-windDir.x, windDir.y) * Mathf.Rad2Deg;
+    toolPos += (Vector2)(hairDryer.transform.rotation * (Vector3)dryerOffset);
+    Vector2 windDir  = ((Vector2)hairDryer.transform.right).normalized;
+    Vector2 windPerp = new Vector2(-windDir.y, windDir.x);
+    float baseTargetZ = Mathf.Atan2(-windDir.x, windDir.y) * Mathf.Rad2Deg;
+
+    // advance animation timer once per call, not once per card
+    dryerAnimTime += Time.deltaTime;
+    bool flipThisFrame = dryerAnimTime >= dryerAnimDuration;
+    if (flipThisFrame)
+        dryerAnimTime -= dryerAnimDuration;
 
     for (int i = 0; i < cards.Length; i++)
     {
         HairCard card = cards[i];
-        if (!IsToolInRadius(toolPos, card, wRangeSq, wWidthSq, out float normSum, false, -windDir))
-            continue;
-        float distanceFalloff = Mathf.Pow(1f - normSum, windFalloffPower);
-        float currentZ  = card.transform.eulerAngles.z;
-        float zRotation = Mathf.LerpAngle(currentZ, targetZ, Time.deltaTime * windStrength * distanceFalloff);
+        Vector2 toCard = (Vector2)card.transform.position - toolPos;
+        float distSq   = toCard.sqrMagnitude;
+
+        // check cone (directed airflow) and blast (strong close-range nozzle effect)
+        bool inCone  = IsToolInRadius(toolPos, card, wRangeSq, wWidthSq, out float normSum, windDir);
+        bool inBlast = distSq < blastRadiusSq;
+        if (!inCone && !inBlast) continue;
+
+        // cone falloff: polynomial attenuation from nozzle outward
+        float coneFalloff  = inCone  ? Mathf.Pow(1f - normSum, windFalloffPower) : 0f;
+        // blast falloff: linear radial dropoff very close to the nozzle
+        float blastFalloff = inBlast ? 1f - Mathf.Sqrt(distSq) / blastRadius     : 0f;
+        float falloff = Mathf.Max(coneFalloff, blastFalloff);
+
+        // signed lateral distance from wind axis → fan-out direction
+        float lateralSigned = Vector2.Dot(toCard, windPerp);
+        float lateralNorm   = Mathf.Clamp01(Mathf.Abs(lateralSigned) / windSpreadWidth); // 0 at center, 1 at edge
+
+        // convex curve: small spread near center, large at edges
+        float spreadAngle = Mathf.Sign(lateralSigned)
+                          * Mathf.Pow(lateralNorm, windSpreadCurve)
+                          * windSpread;
+
+        float targetZ  = baseTargetZ + spreadAngle;
+        float currentZ = card.transform.eulerAngles.z;
+        float zRotation = Mathf.LerpAngle(currentZ, targetZ, Time.deltaTime * windStrength * falloff);
         card.transform.rotation = Quaternion.Euler(0f, 0f, zRotation);
-        
-        // apply animation
-        dryerAnimTime += Time.deltaTime;
-        if (dryerAnimTime >= dryerAnimDuration)
+
+        if (flipThisFrame)
         {
             Vector3 s = card.transform.localScale;
             card.transform.localScale = new Vector3(-s.x, s.y, s.z);
-            dryerAnimTime -= dryerAnimDuration;
         }
     }
 }
@@ -89,12 +126,12 @@ public void ApplyWind(Vector2 toolPos)
             if(card.currentLength == minLength) // already the shortest possible, can't cut
                 continue;
             // is the hair close enough to this hair card?
-            // max length as radius to that the tool will work all along the length of the hair
-            if (!IsToolInRadius(toolPos, card, maxLength, bladeRadiusSq))
+            if (!IsToolInRadius(toolPos, card, bladeLengthSq, bladeRadiusSq, out _, (Vector2)scissors.transform.right))
                 continue;
 
             // project onto card's local up axis to find where along the card to cut
-            float projectedLength = Vector2.Dot(toolPos - (Vector2)card.transform.position, (Vector2)card.transform.up);
+            Vector2 root = (Vector2)card.transform.position;
+            float projectedLength = Vector2.Dot(toolPos - root, (Vector2)card.transform.up);
             SetHairLength(card, Mathf.Max(projectedLength, minLength));
         }
     }
@@ -107,8 +144,7 @@ public void ApplyWind(Vector2 toolPos)
             if(card.currentLength == maxLength) // already the longest possible
                 continue;
             // is the hair close enough to this hair card?
-            // max length as radius to that the tool will work all along the length of the hair
-            if (!IsToolInRadius(toolPos, card, maxLength, growRadiusSq))
+            if (!IsToolInRadius(toolPos, card, growLengthSq, growRadiusSq, out _, (Vector2)hairExtension.transform.right))
                 continue;
             SetHairLength(card, Mathf.Min(card.currentLength + growRate * Time.deltaTime, maxLength));
         }
@@ -121,31 +157,34 @@ public void ApplyWind(Vector2 toolPos)
     }
 
 #region HAIR DISTANCE FROM TOOL
-    // simple overload: uses hair's up axis, applies segment bounds, no falloff output
-    bool IsToolInRadius(Vector2 toolPos, HairCard card, float alongRadiusSq, float perpRadiusSq)
-        => IsToolInRadius(toolPos, card, alongRadiusSq, perpRadiusSq, out _, true, (Vector2)card.transform.up);
+bool IsToolInRadius(Vector2 toolPos,HairCard card, float alongRadiusSq, float perpRadiusSq,out float normSum,Vector2 toolDir)
+{
+    normSum = 0f;
+    toolDir.Normalize();
+    Vector2 root = (Vector2)card.transform.position;
+    Vector2 hairDir = ((Vector2)card.transform.up).normalized;
+    Vector2 rootToTool = toolPos - root;
+    // the projection is the parallel of toTool (line from root of hair to tool) along the hair
+    // it tells us how far along the hair direction is the tool
+    float alongHair = Vector2.Dot(rootToTool, hairDir);
+    // clamp root to tip
+    alongHair = Mathf.Clamp(alongHair, 0f, card.currentLength);
+    // closest point on the hair to the tool
+    Vector2 closestPoint = root + hairDir * alongHair;
+    // measure from tool → that point
+    Vector2 toolToPoint = closestPoint - toolPos;
+    float alongTool = Vector2.Dot(toolToPoint, toolDir);
 
-    // full version: custom axis, optional segment bounds, outputs normSum for falloff
-    // applySegmentBounds: rejects if projection falls outside [0, currentLength]
-    bool IsToolInRadius(Vector2 toolPos, HairCard card, float alongRadiusSq, float perpRadiusSq, out float normSum, bool applySegmentBounds, Vector2 dir)
-    {
-        normSum = 0f;
-        Vector2 root = (Vector2)card.transform.position;
-        Vector2 rootToTool = toolPos - root;
-        // the projection is the parallel of toTool (line from root of hair to tool) along the hair
-        // it tells us how far along the hair direction is the tool
-        float alongHairProj = Vector2.Dot(rootToTool, dir);
-        // if the tool is below the root or above the tip
-        if (applySegmentBounds && (alongHairProj < 0f || alongHairProj > card.currentLength))
-            return false;
-        // calculate the distance from the hair:
-        // it is the vector starting at the tool and ending perpendicular to the projection along the hair
-        // you find it by removing the along the hair part
-        Vector2 perp = rootToTool - dir * alongHairProj;
-        normSum = alongHairProj * alongHairProj / alongRadiusSq + perp.sqrMagnitude / perpRadiusSq;
-        return normSum <= 1f;
-    }
-
+    // reject if the closest point is behind the tool or beyond its range
+    if (alongTool < 0f || alongTool * alongTool > alongRadiusSq)
+        return false;
+    // calculate the distance from the hair:
+    // it is the vector starting at the tool and ending perpendicular to the projection along the hair
+    // you find it by removing the along the hair part
+    Vector2 perp = toolToPoint - toolDir * alongTool;
+    normSum = (alongTool * alongTool) / alongRadiusSq +(perp.sqrMagnitude) / perpRadiusSq;
+    return normSum <= 1f;
+}
 #endregion
 #region SPAN CARDS
     // generates cardCount hair cards along a semicircular arc
@@ -226,29 +265,35 @@ public void ApplyWind(Vector2 toolPos)
         if (scissors != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere((Vector2)scissors.transform.position + (Vector2)scissors.transform.TransformVector(scissorsOffset), bladeRadius);
+            Vector2 scissorsPos = (Vector2)scissors.transform.position + (Vector2)scissors.transform.TransformVector(scissorsOffset);
+            DrawEllipseGizmo(scissorsPos, scissors.transform.right, bladeLength, bladeRadius);
         }
         if (hairExtension != null)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere((Vector2)hairExtension.transform.position + (Vector2)hairExtension.transform.TransformVector(extensionOffset), growRadius);
+            Vector2 extensionPos = (Vector2)hairExtension.transform.position + (Vector2)hairExtension.transform.TransformVector(extensionOffset);
+            DrawEllipseGizmo(extensionPos, hairExtension.transform.right, growLength, growRadius);
         }
         if (hairDryer != null)
         {
             Gizmos.color = Color.magenta;
-            Vector3 pos   = (Vector2)hairDryer.transform.position + (Vector2)hairDryer.transform.TransformVector(dryerOffset);
-            Vector3 windDir = hairDryer.transform.right;
-            Vector3 right   = hairDryer.transform.up;
-            Vector3 tip   = pos + windDir * windRange;
-            // four corners of the rectangular beam
-            Vector3 nearTop    = pos + right *  windWidth;
-            Vector3 nearBottom = pos + right * -windWidth;
-            Vector3 farTop     = tip + right *  windWidth;
-            Vector3 farBottom  = tip + right * -windWidth;
-            Gizmos.DrawLine(nearTop,    farTop);
-            Gizmos.DrawLine(nearBottom, farBottom);
-            Gizmos.DrawLine(nearTop,    nearBottom);
-            Gizmos.DrawLine(farTop,     farBottom);
+            Vector2 pos = (Vector2)hairDryer.transform.position + (Vector2)hairDryer.transform.TransformVector(dryerOffset);
+            // blast radius: close-range nozzle effect (circle)
+            DrawEllipseGizmo(pos, hairDryer.transform.right, blastRadius, blastRadius);
+            // wind cone: matches the normSum ellipse used in IsToolInRadius
+            DrawEllipseGizmo(pos, hairDryer.transform.right, windRange, windWidth);
+        }
+    }
+    void DrawEllipseGizmo(Vector2 center, Vector2 forward, float a, float b, int segments = 32)
+    {
+        Vector2 right = new(-forward.y, forward.x);
+        Vector3 prev = center + forward * a;
+        for (int i = 1; i <= segments; i++)
+        {
+            float angle = i * Mathf.PI * 2f / segments;
+            Vector3 next = (Vector3)(center + forward * (Mathf.Cos(angle) * a) + right * (Mathf.Sin(angle) * b));
+            Gizmos.DrawLine(prev, next);
+            prev = next;
         }
     }
 #endregion

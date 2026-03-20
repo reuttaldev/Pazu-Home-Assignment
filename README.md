@@ -137,56 +137,58 @@ Additionally:
 This decision should be revisited when the hair card count increases significantly.
 
 **Tool detection: brute-force math (O(N), no physics):**
- Distance is measured as an ellipse: `alongRadius` limits how far along the hair the tool can be, `perpRadius` limits how far off the hair axis it can be.
+The detection ellipse is **centered at the tool** and oriented along its forward axis. `alongRadius` limits how far in front of the tool a hair can be; `perpRadius` limits how far to the side.
 
-**Ellipse math** 
-1. Project `rootToTool` onto the axis: `along = Dot(rootToTool, dir)`
-2. Reject if `applySegmentBounds` and `along` is outside `[0, currentLength]`
-3. Compute perpendicular component: `perp = rootToTool - dir * along`
-4. Sum normalized squared distances: `normSum = along²/alongRadiusSq + perp.sqrMagnitude/perpRadiusSq`
-5. Return `normSum <= 1` (inside ellipse); `normSum` also encodes falloff (0 at center, 1 at edge)
+**Ellipse math**
+1. Find the closest point on the hair strand: `t = Clamp(Dot(rootToTool, hairDir), 0, currentLength)`, `closestPoint = root + hairDir * t`
+2. Measure from tool to that point: `toolToPoint = closestPoint - toolPos`
+3. Project onto tool's forward axis: `alongTool = Dot(toolToPoint, toolDir)`
+4. Reject if behind the tool (`alongTool < 0`) or out of forward range (`alongTool² > alongRadiusSq`)
+5. Compute perpendicular: `perp = toolToPoint - toolDir * alongTool`
+6. Sum normalized squared distances: `normSum = alongTool²/alongRadiusSq + perp.sqrMagnitude/perpRadiusSq`
+7. Return `normSum <= 1` (inside ellipse); `normSum` also encodes falloff (0 at center, 1 at edge)
 
-**Why the dryer passes `-windDir` as axis:**
-`IsToolInRadius` computes `rootToTool = toolPos - root` (tool's perspective). Wind needs the projection from the dryer's perspective: `dot(toRoot, windDir)`. Since `dot(rootToTool, -windDir) = dot(toRoot, windDir)`, passing `-windDir` corrects the direction with no extra code.
+**Why no `-windDir` trick:**
+The dryer passes `windDir` (not negated) because `toolToPoint = closestPoint - toolPos` already points from the tool toward the hair — the direction is natural. A previous hair-centric formulation computed `rootToTool = toolPos - root` and needed to pass `-windDir` to flip the projection direction; this is no longer required.
 
 **Wind falloff:**
-`ApplyWind` reads wind direction from `hairDryer.transform.right` and rotates each in-range card toward the target Z angle (`Atan2(-windDir.x, windDir.y)`). Falloff is `Mathf.Pow(1 - normSum, windFalloffPower)` — `windFalloffPower` is Inspector-exposed: `1` = linear, `< 1` = stays strong longer, `> 1` = weakens quickly.
+`ApplyWind` reads wind direction from `hairDryer.transform.right` and rotates each in-range card toward the target Z angle (`Atan2(-windDir.x, windDir.y)`). Falloff is `Mathf.Pow(1 - normSum, windFalloffPower)` — `windFalloffPower` is Inspector-exposed: `1` = linear, `< 1` = stays strong longer, `> 1` = weakens quickly. A separate `blastRadius` circle provides a strong close-range nozzle effect independent of the cone.
 
-**Why `Dot(toTool, alongHair)` gives the projection along the hair:**
+**Why `Dot(rootToTool, hairDir)` gives the closest point along the hair (step 1):**
 
 **Step 1 — Draw the situation**
 ```
-              toTool
+              rootToTool
                 *
                /
               /
              / θ
             /
 root  *----->-----------------
-         alongHair
+         hairDir
 ```
-`alongHair` is the normalized hair direction (`card.transform.up`).
-`toTool` is the vector from the root to the tool position.
+`hairDir` is the normalized hair direction (`card.transform.up`).
+`rootToTool` is the vector from the root to the tool position.
 θ is the angle between them.
 
 **Step 2 — Drop a perpendicular**
 ```
-              toTool
+              rootToTool
                 *
                /|
               / |
              /  |  ← perpendicular part
             /   |
 root  *----X----+-------------
-         alongHair
+         hairDir
 ```
 X is the **projection point** — where the tool "lands" on the hair axis.
-This gives a right triangle: hypotenuse = `|toTool|`, adjacent side = root→X.
+This gives a right triangle: hypotenuse = `|rootToTool|`, adjacent side = root→X.
 
 **Step 3 — Basic trig**
 ```
 cos(θ) = adjacent / hypotenuse
-adjacent = |toTool| * cos(θ)
+adjacent = |rootToTool| * cos(θ)
 ```
 The adjacent side (root→X) is exactly the **projection length** — how far along the hair the tool sits.
 
@@ -196,36 +198,58 @@ The dot product is defined as:
 ```
 a · b = |a| |b| cos(θ)
 ```
-Since `alongHair` is normalized (`|alongHair| = 1`):
+Since `hairDir` is normalized (`|hairDir| = 1`):
 ```
-toTool · alongHair = |toTool| · 1 · cos(θ)
-                   = |toTool| cos(θ)
-                   = projection length  ✓
+rootToTool · hairDir = |rootToTool| · 1 · cos(θ)
+                     = |rootToTool| cos(θ)
+                     = projection length  ✓
 ```
-
-So `Dot(toTool, alongHair)` directly gives the signed distance along the hair where the tool projects — without any trig calls.
+So `Dot(rootToTool, hairDir)` directly gives the signed distance along the hair where the tool projects — without any trig calls. Clamping it to `[0, currentLength]` snaps X to the nearest point that actually lies on the strand.
 
 **Step 5 — What happens to the perpendicular part?**
 
 The perpendicular distance (how far the tool is from the hair axis) could be computed as:
 ```
-sqrt(|toTool|² - projection²)
+sqrt(|rootToTool|² - projection²)
 ```
 But `sqrt` is expensive. Instead, we reconstruct the perpendicular vector directly:
 ```
-offset = toTool - alongHair * projection
+offset = rootToTool - hairDir * projection
 ```
-Geometrically: `alongHair * projection` is the adjacent side (the vector along the hair to the projection point X). Subtracting it from `toTool` removes the horizontal part — what remains is the perpendicular vector pointing from X to the tool.
+Geometrically: `hairDir * projection` is the adjacent side (the vector along the hair to point X). Subtracting it from `rootToTool` removes the along-hair component — what remains is the perpendicular vector pointing from X to the tool.
 ```
-              toTool
+              rootToTool
                 *
                /|
-    toTool    / | ← offset = toTool - alongHair*proj
+              / | ← offset = rootToTool - hairDir*proj
              /  |
 root  *----X----+-------------
-         alongHair*proj
+         hairDir*proj
 ```
 Then `offset.sqrMagnitude` gives the squared perpendicular distance — no `sqrt` needed, just a comparison against `radius²`.
+
+**Why `Dot(toolToPoint, toolDir)` is used again in step 2:**
+
+The same projection logic applies, but now relative to the tool. `toolToPoint = closestPoint - toolPos` points from the tool toward the closest point on the hair:
+```
+tool  *----Y---------  toolDir
+            \
+             \
+              \
+               * closestPoint
+```
+`Dot(toolToPoint, toolDir)` gives how far the closest point sits along the tool's forward axis — the "depth" into the detection zone. Subtracting it isolates the lateral offset exactly as in step 5 above:
+```
+              toolToPoint
+                *
+               /|
+              / |
+             /  | ← perp = toolToPoint - toolDir * alongTool
+            /   |
+tool  *----Y----+-------------
+         toolDir * alongTool
+```
+`perp.sqrMagnitude` is the squared sideways distance from the tool's axis to the closest point on the hair — used directly in the ellipse test.
 
 ## FaceTarget
 A component that rotates a tool to always face an assigned Transform. `Lerp` is used for a smooth transition.y Enabled/disabled by the tool during drag so it snaps back with the rest rotation on release.

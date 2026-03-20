@@ -26,7 +26,7 @@ public class FaceTarget : MonoBehaviour
 float AngleToTarget()
 {
     Vector2 dir = target.position - transform.position;
-    float targetAngle = Mathf.Atan2(dir.y, -dir.x) * Mathf.Rad2Deg;
+    float targetAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
     float sign = targetAngle >= 0f ? 1f : -1f;
     float clamped = Mathf.Clamp(Mathf.Abs(targetAngle), minAngle, maxAngle);
     return sign * clamped;
