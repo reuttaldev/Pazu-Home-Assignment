@@ -5869,6 +5869,7 @@ MonoBehaviour:
   minAngle: -180
   maxAngle: 180
   flip: 1
+  defaultFacingRight: 0
 --- !u!1 &1403321212
 GameObject:
   m_ObjectHideFlags: 0
@@ -6255,9 +6256,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1737811770}
   speed: 15
-  minAngle: 60
-  maxAngle: 120.2
-  flip: 1
+  minAngle: 53.7
+  maxAngle: 127.3
+  flip: 0
+  defaultFacingRight: 0
 --- !u!1 &1821124843
 GameObject:
   m_ObjectHideFlags: 0
@@ -6464,7 +6466,7 @@ Transform:
   m_GameObject: {fileID: 1874344020}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0.11, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11482,7 +11484,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99ce9a5a94cc007419eca60164570031, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 40
+  speed: 20.6
   angle: 1
 --- !u!1 &2134173870
 GameObject:

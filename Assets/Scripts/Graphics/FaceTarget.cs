@@ -9,6 +9,7 @@ public class FaceTarget : MonoBehaviour
     [SerializeField] float maxAngle = 100f;
 
     [SerializeField] bool flip = true;
+    [SerializeField] bool defaultFacingRight = false;
 
     float zRotation;
 
@@ -17,8 +18,11 @@ public class FaceTarget : MonoBehaviour
         zRotation = Mathf.LerpAngle(zRotation, AngleToTarget(), Time.deltaTime * speed);
         transform.rotation = Quaternion.Euler(0f, 0f, zRotation);
 
-        if (!flip) return;
-        float sign = target.position.x > transform.position.x ? -1f : 1f;
+        float sign;
+        if (flip)
+            sign = target.position.x > transform.position.x ? -1f : 1f;
+        else
+            sign = defaultFacingRight ? 1f : -1f;
         Vector3 s = transform.localScale;
         transform.localScale = new Vector3(s.x, sign * Mathf.Abs(s.y), s.z);
     }
