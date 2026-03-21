@@ -7,10 +7,15 @@ public class WobbleComponent : MonoBehaviour
     [SerializeField] 
     float angle = 2f;
 
+    float baseZ;
+
+    void OnEnable()
+    {
+        baseZ = transform.eulerAngles.z;
+    }
+
     void LateUpdate()
     {
-        Vector3 euler = transform.localEulerAngles;
-        euler.z += Mathf.Sin(Time.time * speed) * angle;
-        transform.localEulerAngles = euler;
+        transform.rotation = Quaternion.Euler(0f, 0f, baseZ + Mathf.Sin(Time.time * speed) * angle);
     }
 }

@@ -1,24 +1,20 @@
 using UnityEngine;
 
-[RequireComponent(typeof(WobbleComponent))]
 [RequireComponent(typeof(FaceTarget))]
 public class HairDryer : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] ParticleSystem fanParticles;
-    WobbleComponent wobble;
     FaceTarget faceTarget;
 
     protected override void Awake()
     {
-        base.Awake(); 
-        wobble = GetComponent<WobbleComponent>();
+        base.Awake();
         faceTarget = GetComponent<FaceTarget>();
         faceTarget.enabled = false;
     }
     protected override void OnBegin(Vector2 pos)
     {
-        wobble.enabled = true;
         faceTarget.enabled = true;
         if (fanParticles != null) fanParticles.Play();
     }
@@ -32,7 +28,6 @@ public class HairDryer : DraggableTool
 
     protected override void OnEnd()
     {
-        wobble.enabled = false;
         faceTarget.enabled = false;
         if (fanParticles != null) fanParticles.Stop();
     }

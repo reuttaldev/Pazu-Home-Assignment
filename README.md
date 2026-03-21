@@ -19,45 +19,19 @@ All mechanics and effects are "faked" using math calculation. Usage of colliders
 
 ---
 
-# Architecture
+# Tool–Hair Detection Architecture — Approach Comparison
 
-## DraggableTool (abstract base class)
-All three tools extend `DraggableTool`. It handles:
-- **Snap-back**: captures rest position and rotation in `Start()`, restores both on release via `SetPositionAndRotation`
-- **Follow pointer**: moves the sprite to the finger/mouse position each frame
-- **Drag lifecycle**: `OnDragBegin` → `OnDragMove` → `OnDragEnd`, routed by `InputManager`
-- Subclasses implement `OnBegin`, `OnMove`, `OnEnd` for tool-specific behavior
-
-## InputManager
-Uses `Pointer.current` from the new Input System for both mouse (Editor) and touch (mobile). On press, does a `Physics2D.OverlapPoint` hit test to find the tool.
-
-## HairCard
-Lightweight `MonoBehaviour` data bag attached to each hair card prefab. Stores per-card references and state. No logic lives here for correct de-coupling.
-
-## HairManager
-Owns all hair cards and all operations on them. Cards are spawned once in `Awake` and stored in `HairCard[] cards` for fast indexed iteration.
-
-### Instantiation 
-- Cards are distributed along an **elliptical arc** (`arcRadiusX`, `arcRadiusY`) at the top of the head, covering `±arcDeg` degrees
-- Multiple **depth layers** (`layerCount`, `layerSpacing`) stack concentric ellipses so inner layers sit closer to the scalp
-- Per-card random jitter in angle, scale, and height breaks visual repetition
-- Each layer is parented to its own `Layer_N` GameObject for scene hierarchy clarity
-- Sorting order per card is the layer index ±1 randomly, so cards within a layer interleave naturally
-
-### Tool–Hair Detection Architecture
-Hair cards carry no `Collider2D` or `RigidBody` to decrease overhead. Instead, `HairManager` iterates over all cards and determines whether a tool is within range using optimized mathematical distance checks.
-
-Below is a comparison of the possible detection approaches, with a focus on identifying the most efficient solution for this project’s scale.
+Hair cards carry no `Collider2D` or `RigidBody` to decrease overhead. Below is a comparison of the possible detection approaches, with a focus on identifying the most efficient solution for this project's scale.
 
 #### Physics Queries (OverlapBox / OverlapCircle)
 
-Each `HairCard` would have a `Collider2D`.  
+Each `HairCard` would have a `Collider2D`.
 Tools would call:
 
 - `Physics2D.OverlapBoxNonAlloc` (Scissors)
 - `Physics2D.OverlapCircleNonAlloc` (Dryer / Extension)
 
-Unity’s physics engine maintains a **BVH (Bounding Volume Hierarchy)** to accelerate spatial queries. Queries return only colliders overlapping the specified shape.
+Unity's physics engine maintains a **BVH (Bounding Volume Hierarchy)** to accelerate spatial queries. Queries return only colliders overlapping the specified shape.
 
 **Cons**
 
@@ -95,7 +69,7 @@ To avoid the issue where Unity would mark the colliders as dirty due to the wind
 Kinematic bodies are designed for moving objects. Unity uses **fat AABBs with velocity prediction** to reduce frequent tree updates. Small positional movement can be absorbed without full BVH reinsertion.
 
 **Cons**
-Rotation alters the collider’s axis-aligned bounding box (AABB). Fat AABB prediction does not prevent BVH updates when bounds change shape. Therefore:
+Rotation alters the collider's axis-aligned bounding box (AABB). Fat AABB prediction does not prevent BVH updates when bounds change shape. Therefore:
 - Every rotating card still requires BVH maintenance.
 - Cost runs every frame.
 - Cost runs even when no tool is active.
@@ -104,7 +78,7 @@ With 500–1000 cards rotating continuously, this creates unnecessary physics ov
 
 ---
 
-#### Brute-Force Mathematical Check
+#### Brute-Force Mathematical Check ✓ (chosen)
 
 `HairManager` stores all cards in an array. When a tool is dragged:
 - Iterate over `_cards[]`
@@ -136,8 +110,36 @@ Additionally:
 
 This decision should be revisited when the hair card count increases significantly.
 
-**Tool detection: brute-force math (O(N), no physics):**
-The detection ellipse is **centered at the tool** and oriented along its forward axis. `alongRadius` limits how far in front of the tool a hair can be; `perpRadius` limits how far to the side.
+---
+# Architecture
+
+## DraggableTool (abstract base class)
+All three tools extend `DraggableTool`. It handles:
+- **Snap-back**: captures rest position, rotation and scale in `Awake()`, restores all three on release
+- **Follow pointer**: moves the sprite to the finger/mouse position each frame
+- **Drag lifecycle**: `OnDragBegin` → `OnDragMove` → `OnDragEnd`, routed by `InputManager`
+- Subclasses implement `OnBegin`, `OnMove`, `OnEnd` for tool-specific behavior
+
+## InputManager
+Uses `Pointer.current` from the new Input System for both mouse (Editor) and touch (mobile). On press, does a `Physics2D.OverlapPoint` hit test to find the tool.
+
+## HairCard
+Lightweight `MonoBehaviour` data bag attached to each hair card prefab. Stores per-card references and state. No logic lives here for correct de-coupling.
+
+## HairManager
+Owns all hair cards and all operations on them. Cards are spawned once in `Awake` and stored in `HairCard[] cards` for fast indexed iteration.
+
+### Instantiation
+- Cards are distributed along an **elliptical arc** (`arcRadiusX`, `arcRadiusY`) at the top of the head, covering `±arcDeg` degrees
+- Multiple **depth layers** (`layerCount`, `layerSpacing`) stack concentric ellipses so inner layers sit closer to the scalp
+- Per-card random jitter in angle, scale, and height breaks visual repetition
+- Each layer is parented to its own `Layer_N` GameObject for scene hierarchy clarity
+- Sorting order per card is the layer index ±1 randomly, so cards within a layer interleave naturally
+
+### Tool–Hair Detection (`IsToolInRadius`)
+Hair cards carry no `Collider2D` or `RigidBody`. `HairManager` iterates all cards each frame and tests each one mathematically using an ellipse centered on the tool.
+
+The detection ellipse is oriented along the tool's forward axis. `alongRadius` limits how far in front of the tool a hair can be; `perpRadius` limits how far to the side.
 
 **Ellipse math**
 1. Find the closest point on the hair strand: `t = Clamp(Dot(rootToTool, hairDir), 0, currentLength)`, `closestPoint = root + hairDir * t`
@@ -147,48 +149,6 @@ The detection ellipse is **centered at the tool** and oriented along its forward
 5. Compute perpendicular: `perp = toolToPoint - toolDir * alongTool`
 6. Compute `forwardNormSq = alongTool²/alongRadiusSq` and `lateralNormSq = perp.sqrMagnitude/perpRadiusSq`
 7. Return `forwardNormSq + lateralNormSq <= 1` (inside ellipse); both values and `perp` are output for use by the caller
-
-**Why no `-windDir` trick:**
-The dryer passes `windDir` (not negated) because `toolToPoint = closestPoint - toolPos` already points from the tool toward the hair — the direction is natural. A previous hair-centric formulation computed `rootToTool = toolPos - root` and needed to pass `-windDir` to flip the projection direction; this is no longer required.
-
-**Wind fan spreading — angle logic:**
-
-`ApplyWind` produces a fan shape where center cards point straight with the wind and side cards angle outward. The logic is fully geometric — no lookup tables or hardcoded offsets.
-
-`IsToolInRadius` outputs two squared normalised distances alongside the raw perpendicular vector `perp`:
-- `forwardNormSq = alongTool² / wRangeSq` — squared normalised depth into the cone (0 at nozzle, 1 at max range)
-- `lateralNormSq = perp.sqrMagnitude / wWidthSq` — squared normalised sideways distance from the wind axis (0 on-axis, 1 at cone edge)
-- `perp` — the raw lateral offset vector, used to recover the left/right sign
-
-In `ApplyWind` these are converted to linear [0, 1] values via `sqrt`, then used as follows:
-
-```
-forwardNorm    = sqrt(forwardNormSq)
-lateralNorm    = sqrt(lateralNormSq)
-sign           = Sign(Dot(perp, windPerp))        // left (-) or right (+) of wind axis
-forwardFalloff = Pow(1 - forwardNorm, windForwardFalloffPower)   // 1 near nozzle, 0 at max range
-lateralSpread  = Pow(lateralNorm, windLateralFalloffPower)       // 0 on-axis, 1 at cone edge
-coneAngle      = lateralSpread * windMaxSpread * sign * forwardFalloff
-targetZ        = baseTargetZ + coneAngle
-```
-
-- `baseTargetZ = Atan2(-windDir.x, windDir.y)` is the Z rotation that aligns the card's local `up` with `windDir` — center cards target this exactly
-- `lateralSpread` shapes how the fan opens: `windLateralFalloffPower = 1` is linear, `< 1` opens faster near the center, `> 1` stays narrow until the edge
-- `forwardFalloff` reduces the spread for cards deeper in the cone — cards near the nozzle get full spread, cards at max range barely move
-
-**Tuning the two powers:**
-
-`windLateralFalloffPower` and `windForwardFalloffPower` are independent and control different things:
-
-- **Lateral** (`< 1` for more spread): air fans outward — side strands deflect more the further they are from the center. `power < 1` amplifies that effect so even cards with small lateral offset get a large spread angle. `power > 1` keeps spread small until near the cone edge.
-- **Forward** (`> 1` for faster pressure drop): air loses pressure with distance — strands far from the nozzle get weaker wind and deflect less. `power > 1` makes that pressure drop steeper. `power < 1` keeps wind strong deeper into the cone.
-
-They do not have opposite effects — they control orthogonal axes. Forward scales the fan's overall intensity at a given depth. Lateral shapes how the fan distributes across cards at different sideways positions.
-- The sign of `Dot(perp, windPerp)` determines which side of the axis the card is on, so the fan is symmetric
-
-**Why `sqrt` before `Pow`:** both `forwardNormSq` and `lateralNormSq` are squared values — feeding them directly into `Pow(1 - x, power)` produces a non-linear input where the power parameter no longer has an intuitive meaning. Taking `sqrt` first restores linearity so `power = 1` gives a straight falloff, `power = 2` gives a quadratic, etc.
-
-**Why `perp` is output from `IsToolInRadius`:** `perp` is already computed inside the function as part of the ellipse check. Outputting it avoids recomputing `card.position - toolPos` and a second dot product in `ApplyWind`.
 
 **Why `Dot(rootToTool, hairDir)` gives the closest point along the hair (step 1):**
 
@@ -287,8 +247,52 @@ tool  *----Y----+-------------
 ```
 `perp.sqrMagnitude` is the squared sideways distance from the tool's axis to the closest point on the hair — used directly in the ellipse test.
 
-## FaceTarget
-A component that rotates a tool to always face an assigned Transform. `Lerp` is used for a smooth transition.y Enabled/disabled by the tool during drag so it snaps back with the rest rotation on release.
+### Wind Spreading (`ApplyWind`)
+Rotates each in-range card toward a target Z angle that produces a fan shape — center cards point straight with the wind, side cards angle outward. The logic is fully geometric.
+
+`IsToolInRadius` outputs two squared normalised distances alongside the raw perpendicular vector `perp`:
+- `forwardNormSq = alongTool² / wRangeSq` — squared normalised depth into the cone (0 at nozzle, 1 at max range)
+- `lateralNormSq = perp.sqrMagnitude / wWidthSq` — squared normalised sideways distance from the wind axis (0 on-axis, 1 at cone edge)
+- `perp` — the raw lateral offset vector, used to recover the left/right sign
+
+In `ApplyWind` these are converted to linear [0, 1] values via `sqrt`, then used as follows:
+
+```
+forwardNorm    = sqrt(forwardNormSq)
+lateralNorm    = sqrt(lateralNormSq)
+sign           = Sign(Dot(perp, windPerp))        // left (-) or right (+) of wind axis
+forwardFalloff = Pow(1 - forwardNorm, windForwardFalloffPower)   // 1 near nozzle, 0 at max range
+lateralSpread  = Pow(lateralNorm, windLateralFalloffPower)       // 0 on-axis, 1 at cone edge
+coneAngle      = lateralSpread * windMaxSpread * sign * forwardFalloff
+targetZ        = baseTargetZ + coneAngle
+```
+
+- `baseTargetZ = Atan2(-windDir.x, windDir.y)` is the Z rotation that aligns the card's local `up` with `windDir` — center cards target this exactly
+- `lateralSpread` shapes how the fan opens: `windLateralFalloffPower = 1` is linear, `< 1` opens faster near the center, `> 1` stays narrow until the edge
+- `forwardFalloff` scales the overall spread intensity with distance — cards near the nozzle get full spread, cards at max range barely move. `windForwardFalloffPower > 1` makes pressure drop steeper, `< 1` keeps wind strong deeper into the cone
+- The sign of `Dot(perp, windPerp)` determines which side of the axis the card is on, so the fan is symmetric
+
+**Why `sqrt` before `Pow`:** both `forwardNormSq` and `lateralNormSq` are squared values — feeding them directly into `Pow(1 - x, power)` produces a non-linear input where the power parameter no longer has an intuitive meaning. Taking `sqrt` first restores linearity so `power = 1` gives a straight falloff, `power = 2` gives a quadratic, etc.
+
+**Why `perp` is output from `IsToolInRadius`:** `perp` is already computed inside the function as part of the ellipse check. Outputting it avoids recomputing `card.position - toolPos` and a second dot product in `ApplyWind`.
+
+### Scissors (`CutHair`)
+Reduces `currentLength` of each in-range card by the cut amount. Y scale is recalculated from length so the tip shrinks while the root stays fixed.
+
+### Hair Extension (`GrowHair`)
+Increases `currentLength` of each in-range card at `growRate` per second, clamped to `maxLength`.
+
+---
+
+## FaceTarget (`FaceTarget.cs`)
+A component that smoothly rotates a tool toward an assigned `target` Transform each frame.
+
+- **Rotation**: `zRotation` is smoothly interpolated toward `AngleToTarget()` using `LerpAngle` at `speed * deltaTime`, then applied as `Quaternion.Euler(0, 0, zRotation)`.
+- **Angle clamping**: `AngleToTarget` computes `Atan2(dir.y, dir.x)` and clamps the absolute angle to `[minAngle, maxAngle]`. This keeps the tool within a valid arc rather than freely spinning (e.g. scissors stay pointing roughly upward regardless of drag position).
+- **Flip**: When `flip` is enabled, `localScale.y` is set to `sign * Abs(localScale.y)` — positive when the target is to the left, negative when to the right. This mirrors the sprite vertically so it always appears the correct way up regardless of which side it faces. A y-scale flip is used instead of a 180° z rotation because the z axis is already driven by the rotation logic above; a rotation flip would corrupt it.
+- **Lifecycle**: Enabled on drag begin, disabled on drag end — so the tool snaps back to its rest transform (restored by `DraggableTool`) without FaceTarget overriding it. Because FaceTarget writes `localScale.y` every frame, `DraggableTool` must capture and restore `restScale` alongside `restPosition` and `restRotation`.
+
+Used by: **Scissors** and **HairDryer**.
 
 ## WobbleComponent (`WobbleAnim.cs`)
-A component that adds a sine-wave rotation offset each `LateUpdate`. Runs after `FaceTarget` (which uses `Update`) so the wobble always layers on top cleanly. Enabled/disabled by the tool during drag.
+A component that applies a sine-wave rotation each `LateUpdate`, independent of all other components. Enabled/disabled by the tool during drag.
