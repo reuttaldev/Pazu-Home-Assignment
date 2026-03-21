@@ -9,8 +9,9 @@ public class HairDryer : DraggableTool
     WobbleComponent wobble;
     FaceTarget faceTarget;
 
-    protected void Awake()
+    protected override void Awake()
     {
+        base.Awake(); 
         wobble = GetComponent<WobbleComponent>();
         faceTarget = GetComponent<FaceTarget>();
         faceTarget.enabled = false;

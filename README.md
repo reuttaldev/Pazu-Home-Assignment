@@ -145,14 +145,50 @@ The detection ellipse is **centered at the tool** and oriented along its forward
 3. Project onto tool's forward axis: `alongTool = Dot(toolToPoint, toolDir)`
 4. Reject if behind the tool (`alongTool < 0`) or out of forward range (`alongTool² > alongRadiusSq`)
 5. Compute perpendicular: `perp = toolToPoint - toolDir * alongTool`
-6. Sum normalized squared distances: `normSum = alongTool²/alongRadiusSq + perp.sqrMagnitude/perpRadiusSq`
-7. Return `normSum <= 1` (inside ellipse); `normSum` also encodes falloff (0 at center, 1 at edge)
+6. Compute `forwardNormSq = alongTool²/alongRadiusSq` and `lateralNormSq = perp.sqrMagnitude/perpRadiusSq`
+7. Return `forwardNormSq + lateralNormSq <= 1` (inside ellipse); both values and `perp` are output for use by the caller
 
 **Why no `-windDir` trick:**
 The dryer passes `windDir` (not negated) because `toolToPoint = closestPoint - toolPos` already points from the tool toward the hair — the direction is natural. A previous hair-centric formulation computed `rootToTool = toolPos - root` and needed to pass `-windDir` to flip the projection direction; this is no longer required.
 
-**Wind falloff:**
-`ApplyWind` reads wind direction from `hairDryer.transform.right` and rotates each in-range card toward the target Z angle (`Atan2(-windDir.x, windDir.y)`). Falloff is `Mathf.Pow(1 - normSum, windFalloffPower)` — `windFalloffPower` is Inspector-exposed: `1` = linear, `< 1` = stays strong longer, `> 1` = weakens quickly. A separate `blastRadius` circle provides a strong close-range nozzle effect independent of the cone.
+**Wind fan spreading — angle logic:**
+
+`ApplyWind` produces a fan shape where center cards point straight with the wind and side cards angle outward. The logic is fully geometric — no lookup tables or hardcoded offsets.
+
+`IsToolInRadius` outputs two squared normalised distances alongside the raw perpendicular vector `perp`:
+- `forwardNormSq = alongTool² / wRangeSq` — squared normalised depth into the cone (0 at nozzle, 1 at max range)
+- `lateralNormSq = perp.sqrMagnitude / wWidthSq` — squared normalised sideways distance from the wind axis (0 on-axis, 1 at cone edge)
+- `perp` — the raw lateral offset vector, used to recover the left/right sign
+
+In `ApplyWind` these are converted to linear [0, 1] values via `sqrt`, then used as follows:
+
+```
+forwardNorm    = sqrt(forwardNormSq)
+lateralNorm    = sqrt(lateralNormSq)
+sign           = Sign(Dot(perp, windPerp))        // left (-) or right (+) of wind axis
+forwardFalloff = Pow(1 - forwardNorm, windForwardFalloffPower)   // 1 near nozzle, 0 at max range
+lateralSpread  = Pow(lateralNorm, windLateralFalloffPower)       // 0 on-axis, 1 at cone edge
+coneAngle      = lateralSpread * windMaxSpread * sign * forwardFalloff
+targetZ        = baseTargetZ + coneAngle
+```
+
+- `baseTargetZ = Atan2(-windDir.x, windDir.y)` is the Z rotation that aligns the card's local `up` with `windDir` — center cards target this exactly
+- `lateralSpread` shapes how the fan opens: `windLateralFalloffPower = 1` is linear, `< 1` opens faster near the center, `> 1` stays narrow until the edge
+- `forwardFalloff` reduces the spread for cards deeper in the cone — cards near the nozzle get full spread, cards at max range barely move
+
+**Tuning the two powers:**
+
+`windLateralFalloffPower` and `windForwardFalloffPower` are independent and control different things:
+
+- **Lateral** (`< 1` for more spread): air fans outward — side strands deflect more the further they are from the center. `power < 1` amplifies that effect so even cards with small lateral offset get a large spread angle. `power > 1` keeps spread small until near the cone edge.
+- **Forward** (`> 1` for faster pressure drop): air loses pressure with distance — strands far from the nozzle get weaker wind and deflect less. `power > 1` makes that pressure drop steeper. `power < 1` keeps wind strong deeper into the cone.
+
+They do not have opposite effects — they control orthogonal axes. Forward scales the fan's overall intensity at a given depth. Lateral shapes how the fan distributes across cards at different sideways positions.
+- The sign of `Dot(perp, windPerp)` determines which side of the axis the card is on, so the fan is symmetric
+
+**Why `sqrt` before `Pow`:** both `forwardNormSq` and `lateralNormSq` are squared values — feeding them directly into `Pow(1 - x, power)` produces a non-linear input where the power parameter no longer has an intuitive meaning. Taking `sqrt` first restores linearity so `power = 1` gives a straight falloff, `power = 2` gives a quadratic, etc.
+
+**Why `perp` is output from `IsToolInRadius`:** `perp` is already computed inside the function as part of the ellipse check. Outputting it avoids recomputing `card.position - toolPos` and a second dot product in `ApplyWind`.
 
 **Why `Dot(rootToTool, hairDir)` gives the closest point along the hair (step 1):**
 

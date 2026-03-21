@@ -4,12 +4,13 @@ public class HairExtension : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] float growCooldown = 0.08f;
+    [SerializeField] ParticleSystem growParticles;
     WobbleComponent wobble;
     float growTimer;
 
-    protected override void Start()
+    protected override void Awake()
     {
-        base.Start();
+        base.Awake();
         wobble = GetComponent<WobbleComponent>();
     }
 
@@ -24,10 +25,19 @@ public class HairExtension : DraggableTool
         growTimer -= Time.deltaTime;
         if (growTimer <= 0f)
         {
-            hairManager.GrowHair(pos);
+            bool hit = hairManager.GrowHair(pos);
             growTimer = growCooldown;
+            if (growParticles != null)
+            {
+                if (hit && !growParticles.isPlaying) growParticles.Play();
+                else if (!hit && growParticles.isPlaying) growParticles.Stop();
+            }
         }
     }
 
-    protected override void OnEnd() => wobble.enabled = false;
+    protected override void OnEnd()
+    {
+        wobble.enabled = false;
+        if (growParticles != null) growParticles.Stop();  // ensure stopped on release
+    }
 }

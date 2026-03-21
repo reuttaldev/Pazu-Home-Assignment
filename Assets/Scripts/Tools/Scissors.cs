@@ -6,12 +6,14 @@ public class Scissors : DraggableTool
 {
     [SerializeField] HairManager hairManager;
     [SerializeField] float cutCooldown = 0.08f;
+    [SerializeField] TrailRenderer trail;
     FaceTarget faceTarget;
     Animator animator;
     float cutTimer;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake(); 
         animator = GetComponent<Animator>();
         faceTarget = GetComponent<FaceTarget>();
         faceTarget.enabled = false;
@@ -23,7 +25,7 @@ public class Scissors : DraggableTool
         cutTimer = 0f;
         animator.SetBool("active", true);
         faceTarget.enabled = true;
-
+        if (trail != null) trail.enabled = true;
     }
 
     protected override void OnMove(Vector2 pos)
@@ -40,6 +42,6 @@ public class Scissors : DraggableTool
     {
         animator.SetBool("active", false);
         faceTarget.enabled = false;
-
+        if (trail != null) trail.enabled = false;
     }
 }

@@ -10,11 +10,13 @@ public abstract class DraggableTool : MonoBehaviour
     protected bool IsDragging { get; private set; }
     private Vector3 restPosition;
     private Quaternion restRotation;
+    private Vector3 restScale;
 
-    protected virtual void Start()
+    protected virtual void Awake()
     {
         restPosition = transform.position;
         restRotation = transform.rotation;
+        restScale = transform.localScale;
     }
 
     public void OnDragBegin(Vector2 pos)
@@ -32,8 +34,9 @@ public abstract class DraggableTool : MonoBehaviour
     public void OnDragEnd()
     {
         IsDragging = false;
-        transform.SetPositionAndRotation(restPosition, restRotation);
         OnEnd();
+        transform.SetPositionAndRotation(restPosition, restRotation);
+        transform.localScale = restScale;
     }
     protected abstract void OnBegin(Vector2 pos);
     protected abstract void OnMove(Vector2 pos);
