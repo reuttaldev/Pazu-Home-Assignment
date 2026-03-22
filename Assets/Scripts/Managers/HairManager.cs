@@ -78,9 +78,7 @@ public class HairManager : MonoBehaviour
         for (int i = 0; i < cards.Length; i++)
         {
             HairCard card = cards[i];
-            if (!IsToolInRadius(toolPos, card, wRangeSq, wWidthSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, windDir))
-                continue;
-
+           IsToolInRadius(toolPos, card, wRangeSq, wWidthSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, windDir);
             // lateralNorm: 0 on wind axis, 1 at cone edge — scaled by windSpread to get degrees
             // sign from perp (already computed in IsToolInRadius): tells left vs right of wind axis
             float forwardNorm = Mathf.Sqrt(forwardNormSq);
