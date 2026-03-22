@@ -78,7 +78,8 @@ public class HairManager : MonoBehaviour
         for (int i = 0; i < cards.Length; i++)
         {
             HairCard card = cards[i];
-           IsToolInRadius(toolPos, card, wRangeSq, wWidthSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, windDir);
+            IsToolInRange(toolPos, card, wRangeSq, wWidthSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, windDir);
+
             // lateralNorm: 0 on wind axis, 1 at cone edge — scaled by windSpread to get degrees
             // sign from perp (already computed in IsToolInRadius): tells left vs right of wind axis
             float forwardNorm = Mathf.Sqrt(forwardNormSq);
@@ -110,7 +111,7 @@ public class HairManager : MonoBehaviour
             if(card.currentLength == minLength) // already the shortest possible, can't cut
                 continue;
             // is the hair close enough to this hair card?
-            if (!IsToolInRadius(toolPos, card, bladeLengthSq, bladeRadiusSq, out _, out _, out _, (Vector2)scissors.transform.right))
+            if (!IsToolInRange(toolPos, card, bladeLengthSq, bladeRadiusSq, out _, out _, out _, (Vector2)scissors.transform.right))
                 continue;
 
             // project onto card's local up axis to find where along the card to cut
@@ -129,7 +130,7 @@ public class HairManager : MonoBehaviour
             if(card.currentLength == maxLength) // already the longest possible
                 continue;
             // is the hair close enough to this hair card?
-            if (!IsToolInRadius(toolPos, card, growLengthSq, growRadiusSq, out _, out _, out _, (Vector2)hairExtension.transform.right))
+            if (!IsToolInRange(toolPos, card, growLengthSq, growRadiusSq, out _, out _, out _, (Vector2)hairExtension.transform.right))
                 continue;
             SetHairLength(card, Mathf.Min(card.currentLength + growRate * Time.deltaTime, maxLength));
             anyGrown = true;
@@ -144,7 +145,7 @@ public class HairManager : MonoBehaviour
     }
 
 #region HAIR DISTANCE FROM TOOL
-    bool IsToolInRadius(Vector2 toolPos, HairCard card, float alongRadiusSq, float perpRadiusSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, Vector2 toolDir)
+    bool IsToolInRange(Vector2 toolPos, HairCard card, float alongRadiusSq, float perpRadiusSq, out float forwardNormSq, out float lateralNormSq, out Vector2 perp, Vector2 toolDir)
     {
         forwardNormSq = 0f;
         lateralNormSq = 0f;

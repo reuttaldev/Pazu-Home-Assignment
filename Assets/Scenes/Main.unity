@@ -6041,6 +6041,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1546188837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1546188838}
+  m_Layer: 0
+  m_Name: Point to low
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1546188838
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546188837}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.52, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1737811769
 GameObject:
   m_ObjectHideFlags: 0
@@ -6051,7 +6082,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1737811770}
   m_Layer: 0
-  m_Name: Point to
+  m_Name: Point to high
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6066,7 +6097,7 @@ Transform:
   m_GameObject: {fileID: 1737811769}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6, z: 0}
+  m_LocalPosition: {x: 0, y: 1.76, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6254,7 +6285,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dee087b00be556e468ce25516c903375, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 1737811770}
+  target: {fileID: 1546188838}
   speed: 15
   minAngle: 53.7
   maxAngle: 127.3
@@ -6425,14 +6456,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d784c5916a483b5478e854995d666d5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardCount: 300
+  cardCount: 400
   maxLength: 3
   defaultLength: 1
   minLength: 0.1
   width: 1
   arcRadiusX: 2
-  arcRadiusY: 1.85
-  layerCount: 5
+  arcRadiusY: 1.75
+  layerCount: 6
   layerSpacing: 0.03
   cardPrefabs:
   - {fileID: 9068591133229764975, guid: 70a5aa1f1454caa48a98bdfb7b0efb0e, type: 3}
@@ -6450,12 +6481,12 @@ MonoBehaviour:
   extensionOffset: {x: -0.16, y: 0.57}
   hairDryer: {fileID: 1354430918}
   windStrength: 10
-  windRange: 4.58
-  windWidth: 0.85
-  windForwardFalloffPower: 2
-  windLateralFalloffPower: 0.5
-  windMaxSpread: 65.8
-  dryerOffset: {x: 0.75, y: 0.3}
+  windRange: 6.47
+  windWidth: 0.89
+  windForwardFalloffPower: 1.46
+  windLateralFalloffPower: 1
+  windMaxSpread: 35.8
+  dryerOffset: {x: -1.79, y: 0.3}
   dryerAnimDuration: 0.1
 --- !u!4 &1874344022
 Transform:
@@ -11635,4 +11666,5 @@ SceneRoots:
   - {fileID: 380235425}
   - {fileID: 918011746}
   - {fileID: 1737811770}
+  - {fileID: 1546188838}
   - {fileID: 1874344022}
